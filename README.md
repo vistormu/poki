@@ -20,10 +20,12 @@ go + net/http + sqlite, one binary, self-hosted behind tailscale.
 
 | command    | description          |
 | ---------- | -------------------- |
-| `poki run` | start the web server |
+| `poki run` | start the web server (migrates the db on boot) |
+| `poki migrate` | apply pending migrations, print the version |
 
 ## env
 
 | var         | default | what              |
 | ----------- | ------- | ----------------- |
 | `POKI_ADDR` | `:8091` | listen address    |
+| `POKI_DB`   | `poki.db` | the sqlite file, created and migrated on boot |

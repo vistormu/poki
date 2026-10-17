@@ -5,7 +5,10 @@ import (
 	"os"
 	"strings"
 
+	"github.com/jmoiron/sqlx"
 	"github.com/spf13/cobra"
+
+	"poki/adapter/store"
 )
 
 func Execute() {
@@ -16,7 +19,7 @@ func Execute() {
 		SilenceUsage:  true,
 		SilenceErrors: true,
 	}
-	root.AddCommand(runCmd())
+	root.AddCommand(runCmd(), migrateCmd())
 
 	if err := root.Execute(); err != nil {
 		fmt.Fprintln(os.Stderr, err)
@@ -32,4 +35,19 @@ func getenv(key, def string) string {
 		return def
 	}
 	return v
+}
+
+// openDB opens POKI_DB (default poki.db), creating and migrating it.
+func openDB(cmd *cobra.Command) (db *sqlx.DB, path string, version int64, err error) {
+	path = getenv("POKI_DB", "poki.db")
+	db, err = store.Open(path)
+	if err != nil {
+		return nil, "", 0, err
+	}
+	version, err = store.Migrate(cmd.Context(), db)
+	if err != nil {
+		db.Close()
+		return nil, "", 0, err
+	}
+	return db, path, version, nil
 }
