@@ -5,6 +5,8 @@ import (
 
 	"github.com/spf13/cobra"
 
+	"poki/adapter/store"
+	"poki/domain/service"
 	"poki/view/http/server"
 )
 
@@ -27,6 +29,8 @@ POKI_DB the database file (default poki.db), created and migrated on boot.`,
 
 			srv := server.New(server.Config{
 				Addr: getenv("POKI_ADDR", ":8091"),
+				Sync: service.NewSync(store.New(db)),
+				Ping: db.PingContext,
 			})
 			return srv.Run(cmd.Context())
 		},

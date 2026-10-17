@@ -12,6 +12,8 @@ import (
 
 type Config struct {
 	Addr string
+	Sync Syncer
+	Ping func(context.Context) error // the db answers: /healthz
 }
 
 type Server struct {
@@ -21,14 +23,16 @@ type Server struct {
 func New(cfg Config) *Server {
 	return &Server{http: &http.Server{
 		Addr:              cfg.Addr,
-		Handler:           routes(),
+		Handler:           routes(cfg),
 		ReadHeaderTimeout: 5 * time.Second,
 	}}
 }
 
-func routes() http.Handler {
+func routes(cfg Config) http.Handler {
 	mux := http.NewServeMux()
 	mux.HandleFunc("GET /{$}", home)
+	mux.HandleFunc("POST /api/sync", syncHandler(cfg.Sync))
+	mux.HandleFunc("GET /healthz", healthz(cfg.Ping))
 	return mux
 }
 
