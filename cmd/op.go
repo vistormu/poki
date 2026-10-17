@@ -1,6 +1,11 @@
 package cmd
 
 import (
+	"bufio"
+	"fmt"
+	"io"
+	"strings"
+
 	"github.com/spf13/cobra"
 
 	"poki/adapter/store"
@@ -15,7 +20,7 @@ func opCmd() *cobra.Command {
 		Use:   "op",
 		Short: "operate on the data from the terminal",
 	}
-	op.AddCommand(opGroupCmd(), opItemCmd(), opMealCmd(), opPlanCmd())
+	op.AddCommand(opGroupCmd(), opItemCmd(), opMealCmd(), opPlanCmd(), opListCmd())
 	return op
 }
 
@@ -25,6 +30,7 @@ type services struct {
 	items  *service.Items
 	meals  *service.Meals
 	plan   *service.Plan
+	list   *service.List
 }
 
 // openServices opens POKI_DB and builds the services on it; done closes it.
@@ -42,5 +48,14 @@ func openServices(cmd *cobra.Command) (services, func(), error) {
 		items:  items,
 		meals:  meals,
 		plan:   service.NewPlan(st, meals),
+		list:   service.NewList(st, items),
 	}, func() { db.Close() }, nil
+}
+
+// confirm asks a yes/no question; only "y" or "yes" says yes.
+func confirm(in io.Reader, out io.Writer, question string) bool {
+	fmt.Fprintf(out, "%s [y/N] ", question)
+	answer, _ := bufio.NewReader(in).ReadString('\n')
+	answer = strings.ToLower(strings.TrimSpace(answer))
+	return answer == "y" || answer == "yes"
 }

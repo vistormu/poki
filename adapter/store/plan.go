@@ -57,39 +57,3 @@ func (s *Store) DeletePlanEntry(ctx context.Context, id string) error {
 		return t.exec1(ctx, "plan entry "+id, `UPDATE plan_entries SET deleted = 1, rev = ? WHERE id = ? AND deleted = 0`, t.rev, id)
 	})
 }
-
-// listEntryCols reads a list entry, a missing plan entry as "".
-const listEntryCols = `id, item_id, amount, coalesce(plan_entry_id, '') AS plan_entry_id, state`
-
-func (s *Store) Marks(ctx context.Context, planEntryID string) ([]model.ListEntry, error) {
-	entries := []model.ListEntry{}
-	err := s.db.SelectContext(ctx, &entries,
-		`SELECT `+listEntryCols+` FROM list_entries WHERE plan_entry_id = ? AND deleted = 0`, planEntryID)
-	return entries, err
-}
-
-func (s *Store) AddListEntry(ctx context.Context, e model.ListEntry) error {
-	return s.write(ctx, func(t *tx) error {
-		_, err := t.ExecContext(ctx, `INSERT INTO list_entries (id, item_id, amount, plan_entry_id, state, rev)
-			VALUES (?, ?, ?, nullif(?, ''), ?, ?)`, e.ID, e.ItemID, e.Amount, e.PlanEntryID, e.State, t.rev)
-		return err
-	})
-}
-
-func (s *Store) SetListEntryState(ctx context.Context, id, state string) error {
-	return s.write(ctx, func(t *tx) error {
-		return t.exec1(ctx, "list entry "+id, `UPDATE list_entries SET state = ?, rev = ? WHERE id = ? AND deleted = 0`, state, t.rev, id)
-	})
-}
-
-func (s *Store) DeleteListEntry(ctx context.Context, id string) error {
-	return s.write(ctx, func(t *tx) error {
-		var item string
-		if err := t.GetContext(ctx, &item, `UPDATE list_entries SET deleted = 1, rev = ?
-			WHERE id = ? AND deleted = 0 RETURNING item_id`, t.rev, id); err != nil {
-			return notFound(err, "list entry "+id)
-		}
-		t.mayBeUnused = append(t.mayBeUnused, item)
-		return nil
-	})
-}

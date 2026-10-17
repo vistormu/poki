@@ -29,13 +29,21 @@ func find[T any](all []T, ref, what string, id, name func(T) string) (T, error) 
 	case len(named) == 1:
 		return named[0], nil
 	case len(named) > 1:
-		return zero, model.Invalid("%d %ss are called “%s”: use the id", len(named), what, ref)
+		return zero, model.Invalid("%d %s are called “%s”: use the id", len(named), plural(what), ref)
 	case len(prefixed) == 1:
 		return prefixed[0], nil
 	case len(prefixed) > 1:
 		return zero, model.Invalid("more than one %s's id starts with %s", what, ref)
 	}
 	return zero, fmt.Errorf("%s “%s”: %w", what, ref, model.ErrNotFound)
+}
+
+// plural is what's plural: groups, entries.
+func plural(what string) string {
+	if strings.HasSuffix(what, "y") {
+		return what[:len(what)-1] + "ies"
+	}
+	return what + "s"
 }
 
 // checkName trims a name and checks it is there and not too long.

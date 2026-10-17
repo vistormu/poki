@@ -46,6 +46,11 @@ go + net/http + sqlite, one binary, self-hosted behind tailscale.
 | `poki op plan swap <entry> <entry>` | swap two planned meals' places |
 | `poki op plan rm <entry>` | take a meal or no meal off the plan; its list entries stay |
 | `poki op plan mark <entry> <item> buy\|check\|none` | mark a planned meal's ingredient: on the list to buy, to check (?), or off it |
+| `poki op list add <item> [amount]` | put an item on the list by hand, to buy |
+| `poki op list show` | the list: ? entries with their meal, to buy by group in path order (Other last) with totals, bought |
+| `poki op list resolve <entry> buy\|have` | settle a ? entry (its id, or its item when only one ? has it) |
+| `poki op list tick <item>` / `untick <item>` | an item to buy is bought, or back to buy |
+| `poki op list clear [-y]` | empty the whole list, whatever its state (asks first) |
 
 a row is named by its id, its name (when no other row has it), or the first
 characters of its id (4 or more; `list` shows 8). a plan entry only by its id.
