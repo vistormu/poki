@@ -14,9 +14,13 @@
 }
 
 /* a phone app, not a web page (roadmap m7): the body never scrolls or
-   bounces; only .scroll (a tab's content) does. no zoom on double-tap, no zoom
-   on focus (inputs are 16px or more), no tap flash, no selecting controls. */
+   bounces; only .scroll (a tab's content) does. no zoom by pinch or double-tap,
+   no zoom on focus (inputs are 16px or more), no tap flash, no selecting controls. */
 @layer base {
+  html {
+    /* pan only: ios pinches past the viewport's limits otherwise (sike) */
+    touch-action: pan-x pan-y;
+  }
   html,
   body {
     height: 100%;
@@ -32,7 +36,6 @@
     background: var(--color-paper);
     color: var(--color-ink);
     font-family: system-ui, sans-serif;
-    touch-action: manipulation;
     -webkit-tap-highlight-color: transparent;
   }
   #app {

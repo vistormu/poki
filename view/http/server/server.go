@@ -34,6 +34,7 @@ func New(cfg Config) *Server {
 func routes(cfg Config) http.Handler {
 	mux := http.NewServeMux()
 	mux.Handle("GET /", noListing(http.FileServerFS(ui.Static())))
+	mux.HandleFunc("GET /sw.js", serviceWorker())
 	mux.HandleFunc("POST /api/sync", syncHandler(cfg.Sync))
 	mux.HandleFunc("GET /healthz", healthz(cfg.Ping))
 	return mux

@@ -7,7 +7,9 @@ store. offline-first: it opens and works with no connection.
 
 go + net/http + sqlite, one binary, self-hosted behind tailscale. the client is
 preact + htm as plain es modules (`view/ui/static/`, embedded and served at `/`),
-vendored, with no build step. the phones sync
+vendored, with no build step. it installs on the phone and opens with no connection: a service
+worker (`/sw.js`) keeps every file, versioned by their hash, and the data lives
+in indexeddb. the phones sync
 through `POST /api/sync` (`/healthz` says the server and its db are up).
 
 ## dev loop

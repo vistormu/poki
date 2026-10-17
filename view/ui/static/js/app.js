@@ -47,6 +47,10 @@ function App({ syncer }) {
 // ios pinches past the viewport's maximum-scale; this is what stops it
 document.addEventListener("gesturestart", (e) => e.preventDefault());
 
+// the shell for opening with no connection (sw.js); a new one takes over on
+// the next launch
+navigator.serviceWorker?.register("/sw.js");
+
 // ask the browser to keep the store through storage pressure (ios keeps a
 // home-screen app's anyway)
 navigator.storage?.persist?.();

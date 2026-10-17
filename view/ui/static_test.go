@@ -62,3 +62,23 @@ func cleanJoin(dir, rel string) string {
 	}
 	return strings.Join(parts, "/")
 }
+
+func TestShell(t *testing.T) {
+	v1, urls := Shell()
+	v2, _ := Shell()
+	if v1 != v2 || len(v1) != 12 {
+		t.Errorf("version %q then %q: one per build, 12 hex", v1, v2)
+	}
+	for _, u := range urls {
+		path := strings.TrimPrefix(u, "/")
+		if path == "" {
+			path = "index.html"
+		}
+		if _, err := fs.Stat(Static(), path); err != nil {
+			t.Errorf("%s is cached but not there", u)
+		}
+	}
+	if urls[0] != "/" {
+		t.Errorf("urls start %v, want / (index.html)", urls[:1])
+	}
+}

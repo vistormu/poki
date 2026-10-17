@@ -2,10 +2,18 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<!-- a phone app, not a page: no zoom (roadmap m7). ios ignores the scale limits
-     for pinching; app.js stops that -->
+<!-- a phone app, not a page: no zoom (roadmap m7). ios pinches despite the
+     scale limits: touch-action on <html> (input.css) and app.js stop it -->
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
 <title>poki</title>
+<!-- installable (pwa): the manifest, the icons, the iphone's tags -->
+<meta name="theme-color" content="#F3F0FA">
+<link rel="manifest" href="/manifest.webmanifest">
+<link rel="icon" href="/icons/icon-192.png">
+<link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
+<meta name="apple-mobile-web-app-title" content="poki">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
 <link rel="stylesheet" href="/css/site.css">
 <script type="importmap">
 {

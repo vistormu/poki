@@ -45,6 +45,8 @@ func TestRoutes(t *testing.T) {
 		{"GET", "/nope", "", http.StatusNotFound, ""},
 		{"POST", "/", "", http.StatusMethodNotAllowed, ""},
 		{"GET", "/healthz", "", http.StatusOK, "ok"},
+		{"GET", "/manifest.webmanifest", "", http.StatusOK, `"display": "standalone"`},
+		{"GET", "/sw.js", "", http.StatusOK, `const FILES = ["/","/css/site.css",`},
 		{"GET", "/api/sync", "", http.StatusNotFound, ""}, // falls to the files: there is none
 		{"POST", "/api/sync", `{"since": 0, "ops": []}`, http.StatusOK,
 			`{"rev":7,"changes":[{"table":"meals","id":"m","rev":7,"deleted":false,"fields":{"name":"soup"}}],"rejected":[]}`},
@@ -99,5 +101,34 @@ func TestHealthzWhenTheDBIsDown(t *testing.T) {
 	h.ServeHTTP(rec, httptest.NewRequest("GET", "/healthz", nil))
 	if rec.Code != http.StatusServiceUnavailable {
 		t.Errorf("status %d, want 503", rec.Code)
+	}
+}
+
+func TestServiceWorker(t *testing.T) {
+	h := routes(Config{})
+	rec := httptest.NewRecorder()
+	h.ServeHTTP(rec, httptest.NewRequest("GET", "/sw.js", nil))
+	body := rec.Body.String()
+	for _, want := range []string{`const VERSION = "`, `"/js/app.js"`, `"/js/vendor/preact.module.js"`, `"/manifest.webmanifest"`, `caches.open(CACHE)`} {
+		if !strings.Contains(body, want) {
+			t.Errorf("sw.js lacks %s", want)
+		}
+	}
+	for _, not := range []string{`"/sw.js"`, `"/css/input.css"`, `"/index.html"`} {
+		if strings.Contains(body, not) {
+			t.Errorf("sw.js caches %s", not)
+		}
+	}
+	if cc := rec.Header().Get("Cache-Control"); cc != "no-cache" {
+		t.Errorf("Cache-Control %q: a new worker must be seen", cc)
+	}
+	if ct := rec.Header().Get("Content-Type"); !strings.HasPrefix(ct, "text/javascript") {
+		t.Errorf("Content-Type %q", ct)
+	}
+
+	rec = httptest.NewRecorder()
+	h.ServeHTTP(rec, httptest.NewRequest("GET", "/manifest.webmanifest", nil))
+	if ct := rec.Header().Get("Content-Type"); ct != "application/manifest+json" {
+		t.Errorf("manifest Content-Type %q", ct)
 	}
 }
