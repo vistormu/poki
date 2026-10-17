@@ -24,8 +24,10 @@ func Static() fs.FS {
 }
 
 // notCached are the static files the app never asks for: the service worker
-// (served apart, with the version) and tailwind's input.
-var notCached = []string{"sw.js", "css/input.css"}
+// (served apart, with the version), tailwind's input and the dev pages.
+func notCached(path string) bool {
+	return path == "sw.js" || path == "css/input.css" || strings.HasPrefix(path, "dev/")
+}
 
 // Shell is what the service worker keeps for opening with no connection
 // (technical-design.md → offline): every file the app loads, as urls ("/" is
@@ -35,7 +37,7 @@ func Shell() (version string, urls []string) {
 	h := sha256.New()
 	static := Static()
 	err := fs.WalkDir(static, ".", func(path string, d fs.DirEntry, err error) error {
-		if err != nil || d.IsDir() || slices.Contains(notCached, path) {
+		if err != nil || d.IsDir() || notCached(path) {
 			return err
 		}
 		b, err := fs.ReadFile(static, path)

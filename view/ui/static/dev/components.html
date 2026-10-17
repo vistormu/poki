@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>poki — components</title>
+<link rel="stylesheet" href="/css/site.css">
+<script type="importmap">
+{
+  "imports": {
+    "preact": "/js/vendor/preact.module.js",
+    "preact/hooks": "/js/vendor/hooks.module.js",
+    "htm": "/js/vendor/htm.module.js"
+  }
+}
+</script>
+<script type="module" src="/dev/components.js"></script>
+<!-- a dev page scrolls like a page, unlike the app -->
+<style>html, body { position: static; overflow: auto; height: auto; }</style>
+</head>
+<body class="bg-ground-gradient">
+<div id="dev"></div>
+</body>
+</html>

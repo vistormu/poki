@@ -28,10 +28,11 @@ func TestEveryReferenceIsThere(t *testing.T) {
 		check("index.html", r[1]+r[2])
 	}
 
-	// relative imports between our modules (bare ones go through the import map)
-	imports := regexp.MustCompile(`from\s*"(\.[^"]+)"`)
-	err = fs.WalkDir(static, "js", func(path string, d fs.DirEntry, err error) error {
-		if err != nil || d.IsDir() || !strings.HasSuffix(path, ".js") || strings.HasPrefix(path, "js/vendor/") {
+	// imports between our modules, relative or from the root (bare ones go
+	// through the import map), and the icons and images they point to
+	imports := regexp.MustCompile(`from\s*"(\.{1,2}/[^"]+|/[^"]+)"|"(/(?:icons|img|fonts)/[^"$]+)"`)
+	err = fs.WalkDir(static, ".", func(path string, d fs.DirEntry, err error) error {
+		if err != nil || d.IsDir() || !strings.HasSuffix(path, ".js") || strings.HasPrefix(path, "js/vendor/") || path == "sw.js" {
 			return err
 		}
 		src, err := fs.ReadFile(static, path)
@@ -40,7 +41,11 @@ func TestEveryReferenceIsThere(t *testing.T) {
 		}
 		dir := path[:strings.LastIndex(path, "/")]
 		for _, m := range imports.FindAllStringSubmatch(string(src), -1) {
-			check(path, "/"+cleanJoin(dir, m[1]))
+			ref := m[1] + m[2]
+			if !strings.HasPrefix(ref, "/") {
+				ref = "/" + cleanJoin(dir, ref)
+			}
+			check(path, ref)
 		}
 		return nil
 	})

@@ -1,46 +1,36 @@
-import { h, render } from "preact";
+import { render } from "preact";
 import { useEffect, useState } from "preact/hooks";
-import htm from "htm";
 
 import { Data } from "./data/data.js";
 import { idb } from "./data/idb.js";
-import { post, Syncer, OFF, WAITING } from "./data/sync.js";
-
-const html = htm.bind(h);
+import { post, Syncer } from "./data/sync.js";
+import { html } from "./ui/html.js";
+import { Deck } from "./ui/deck.js";
+import { TabBar } from "./ui/tab-bar.js";
 
 // the three tabs (spec → screens); their screens come with phase d
 const tabs = ["Plan", "List", "Meals"];
 
-// SyncLight is a placeholder until m10 draws the one figma settles (m8).
-function SyncLight({ syncer }) {
+// useSync is the syncer's state, for the deck's light and reels.
+function useSync(syncer) {
   const [s, setS] = useState(syncer.state);
   useEffect(() => syncer.subscribe(setS), [syncer]);
-  const color = s.status === OFF ? "bg-pink" : s.status === WAITING ? "bg-gold" : "bg-ink/30";
-  return html`<span
-    class="sync-light size-2 rounded-full ${color} ${s.syncing ? "animate-pulse" : ""}"
-    data-status=${s.status}
-    data-pending=${s.pending}
-  ></span>`;
+  return s;
 }
+
+// the plan's window title is "Today" (figma.md → rules); its subtitle the date
+const today = () => new Date().toLocaleDateString("en-GB", { weekday: "short", day: "numeric", month: "short" }).replace(",", "").toUpperCase();
 
 function App({ syncer }) {
   const [tab, setTab] = useState(tabs[0]);
+  const sync = useSync(syncer);
   return html`
-    <header class="flex justify-end p-3"><${SyncLight} syncer=${syncer} /></header>
-    <main class="scroll flex-1"></main>
-    <nav class="tabs flex border-t border-ink/20 bg-paper">
-      ${tabs.map(
-        (t) => html`
-          <button
-            class="flex-1 py-3 text-ink aria-[current=page]:font-bold"
-            aria-current=${t === tab ? "page" : null}
-            onClick=${() => setTab(t)}
-          >
-            ${t}
-          </button>
-        `,
-      )}
-    </nav>
+    <main class="scroll flex-1 px-3 pt-[calc(env(safe-area-inset-top)+8px)] pb-[calc(max(16px,env(safe-area-inset-bottom))+68px)]">
+      <${Deck} kind=${tab} title=${tab === "Plan" ? "Today" : tab} subtitle=${tab === "Plan" ? today() : null} sync=${sync} />
+    </main>
+    <div class="fixed inset-x-4 bottom-[max(16px,env(safe-area-inset-bottom))]">
+      <${TabBar} tabs=${tabs} active=${tab} onPick=${setTab} />
+    </div>
   `;
 }
 

@@ -1,21 +1,190 @@
-/* placeholder tokens until m10 brings figma's (docs/design/figma.md). */
+/* the figma foundations (docs/design/figma.md), under figma's names. change a
+   value here only after changing it in figma. */
 
 @import "tailwindcss" source(none);
 @source "../index.html";
 @source "../js";
+@source "../dev";
 @source not "../js/vendor";
+/* components pick a tone at runtime (tone-${tone}): every one must exist */
+@source inline("tone-{sky,pink,gold,periwinkle,orchid}");
 
-@theme {
+@font-face {
+  font-family: "Chango";
+  font-weight: 400;
+  font-display: swap;
+  src: url("/fonts/chango-latin-400-normal.woff2") format("woff2");
+}
+@font-face {
+  font-family: "Bagel Fat One";
+  font-weight: 400;
+  font-display: swap;
+  src: url("/fonts/bagel-fat-one-latin-400-normal.woff2") format("woff2");
+}
+@font-face {
+  font-family: "Fredoka";
+  font-weight: 600;
+  font-display: swap;
+  src: url("/fonts/fredoka-latin-600-normal.woff2") format("woff2");
+}
+@font-face {
+  font-family: "Fredoka";
+  font-weight: 700;
+  font-display: swap;
+  src: url("/fonts/fredoka-latin-700-normal.woff2") format("woff2");
+}
+@font-face {
+  font-family: "Share Tech Mono";
+  font-weight: 400;
+  font-display: swap;
+  src: url("/fonts/share-tech-mono-latin-400-normal.woff2") format("woff2");
+}
+
+/* static: every variable ships, used or not (tones are picked at runtime:
+   bg-(--tone)). spacing stays tailwind's 4 px step: figma's space 1·2·3·4 =
+   4·8·16·24 = p-1·p-2·p-4·p-6. */
+@theme static {
   --color-*: initial;
-  --color-paper: #f7f3ea;
-  --color-ink: #141414;
-  --color-gold: #e8b93a;
-  --color-pink: #e5487a;
+  --font-*: initial;
+  --text-*: initial;
+  --shadow-*: initial;
+  --radius-*: initial;
+
+  /* colour: the album's five, then the rest */
+  --color-sky: #82ccf1;
+  --color-periwinkle: #9996cb;
+  --color-orchid: #c59dce;
+  --color-pink: #d8a6cb;
+  --color-gold: #efc66a;
+  --color-ink: #2b2747;
+  --color-dusk: #4e4486;
+  --color-paper: #ffffff;
+  --color-ground: #f3f0fa;
+  --color-cream: #fbf5ee;
+
+  --font-display: "Chango", system-ui, sans-serif;
+  --font-heading: "Bagel Fat One", system-ui, sans-serif;
+  --font-body: "Fredoka", system-ui, sans-serif;
+  --font-mono: "Share Tech Mono", ui-monospace, monospace;
+
+  --radius-sm: 8px;
+  --radius-lg: 20px;
+
+  /* figma's shadow: soft, periwinkle */
+  --shadow-soft: 0 8px 20px rgb(153 150 203 / 0.35);
+}
+
+/* type: one utility per figma text style */
+@utility type-display {
+  font-family: var(--font-display);
+  font-size: 40px;
+  line-height: 46px;
+  font-weight: 400;
+}
+@utility type-heading {
+  font-family: var(--font-heading);
+  font-size: 17px;
+  line-height: 22px;
+  font-weight: 400;
+}
+@utility type-body {
+  font-family: var(--font-body);
+  font-size: 19px;
+  line-height: 24px;
+  font-weight: 600;
+}
+@utility type-label {
+  font-family: var(--font-body);
+  font-size: 15px;
+  line-height: 20px;
+  font-weight: 700;
+}
+@utility type-mono {
+  font-family: var(--font-mono);
+  font-size: 17px;
+  line-height: 22px;
+  font-weight: 400;
+}
+@utility type-mono-small {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  line-height: 16px;
+  font-weight: 400;
+}
+
+/* gradients: figma's fill styles. dusk runs corner to corner, ground top to
+   bottom, the album's from their colour to the next, left to right */
+@utility bg-dusk-gradient {
+  background-image: linear-gradient(to bottom right, var(--color-ink), var(--color-dusk));
+}
+@utility bg-ground-gradient {
+  background-image: linear-gradient(to bottom, var(--color-ground), var(--color-cream));
+}
+@utility bg-tone-gradient {
+  /* the album gradient of the --tone and --tone-next set on the element */
+  background-image: linear-gradient(to right, var(--tone), var(--tone-next));
+}
+
+/* grain: figma's noise (monotone ink at 10%, density 0.5, 1 device px) has
+   no css twin; img/grain.png is a tile of it at 3x (384 px shown at 128), laid
+   over the element's fill */
+@utility grain {
+  position: relative;
+  isolation: isolate;
+  &::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    background: url("/img/grain.png") 0 0 / 128px 128px;
+    pointer-events: none;
+    z-index: -1;
+  }
+}
+
+/* glow: gold, only the window title */
+@utility glow {
+  text-shadow: 0 0 12px rgb(239 198 106 / 0.85);
+}
+
+/* the dotted divider: 1 px ink at 60%, 2 on and 5 off, from the first letter
+   to the end of the last element (16 px in) */
+@utility divider {
+  position: absolute;
+  left: 16px;
+  right: 16px;
+  bottom: 0;
+  height: 1px;
+  opacity: 0.6;
+  background: repeating-linear-gradient(to right, var(--color-ink) 0 2px, transparent 2px 7px);
+}
+
+/* the album's tones, for components that take one: bg-(--tone) */
+@utility tone-sky {
+  --tone: var(--color-sky);
+  --tone-next: var(--color-periwinkle);
+}
+@utility tone-pink {
+  --tone: var(--color-pink);
+  --tone-next: var(--color-orchid);
+}
+@utility tone-gold {
+  --tone: var(--color-gold);
+  --tone-next: var(--color-pink);
+}
+@utility tone-periwinkle {
+  --tone: var(--color-periwinkle);
+  --tone-next: var(--color-orchid);
+}
+@utility tone-orchid {
+  --tone: var(--color-orchid);
+  --tone-next: var(--color-pink);
 }
 
 /* a phone app, not a web page (roadmap m7): the body never scrolls or
    bounces; only .scroll (a tab's content) does. no zoom by pinch or double-tap,
-   no zoom on focus (inputs are 16px or more), no tap flash, no selecting controls. */
+   no zoom on focus (inputs are 16px or more), no tap flash, no selecting
+   controls. */
 @layer base {
   html {
     /* pan only: ios pinches past the viewport's limits otherwise (sike) */
@@ -33,24 +202,21 @@
     position: fixed;
     inset: 0;
     margin: 0;
-    background: var(--color-paper);
+    background-color: var(--color-ground);
     color: var(--color-ink);
-    font-family: system-ui, sans-serif;
+    font-family: var(--font-body);
     -webkit-tap-highlight-color: transparent;
   }
   #app {
     display: flex;
     flex-direction: column;
     height: 100%;
-    padding: env(safe-area-inset-top) env(safe-area-inset-right) 0 env(safe-area-inset-left);
+    padding: 0 env(safe-area-inset-right) 0 env(safe-area-inset-left);
   }
   .scroll {
     overflow-y: auto;
     overscroll-behavior: contain;
     -webkit-overflow-scrolling: touch;
-  }
-  .tabs {
-    padding-bottom: env(safe-area-inset-bottom);
   }
   button,
   nav,
@@ -59,9 +225,22 @@
     -webkit-user-select: none;
     -webkit-touch-callout: none;
   }
+  button {
+    cursor: pointer;
+  }
   input,
   textarea,
   select {
     font-size: max(16px, 1em);
   }
+}
+
+/* the reels turn while a sync is out or the server can't be reached */
+@keyframes reel {
+  to {
+    transform: rotate(360deg);
+  }
+}
+@utility spin-reel {
+  animation: reel 2.4s linear infinite;
 }

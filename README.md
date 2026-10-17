@@ -25,11 +25,16 @@ through `POST /api/sync` (`/healthz` says the server and its db are up).
 | `just css`   | compile tailwind: `input.css` → `site.css`  |
 | `just css-watch` | recompile the css on change              |
 | `just css-check` | fail if the committed `site.css` is stale |
+| `just fonts` | copy the self-hosted fonts out of `@fontsource` |
 
-the css is tailwind v4 (`view/ui/static/css/input.css`). the compiled `site.css` is
+the css is tailwind v4 with figma's tokens (`view/ui/static/css/input.css`). the compiled `site.css` is
 committed and embedded, so `go build` and `just test` work without node; only the
 css recipes need node + npm (they run `npm ci` themselves when `node_modules` is
 missing or was installed on another os).
+
+dev pages: `/dev/components` shows every component in every variant (compare
+with figma). a running app keeps its build until it is relaunched (the service
+worker): open a fresh window to see a change.
 
 ## cli
 

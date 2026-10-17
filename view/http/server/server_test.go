@@ -36,7 +36,8 @@ func TestRoutes(t *testing.T) {
 		status             int
 		want               string
 	}{
-		{"GET", "/", "", http.StatusOK, `<div id="app">`},
+		{"GET", "/", "", http.StatusOK, `<div id="app"`},
+		{"GET", "/dev/components", "", http.StatusOK, `/dev/components.js`},
 		{"GET", "/js/app.js", "", http.StatusOK, "render("},
 		{"GET", "/js/vendor/preact.module.js", "", http.StatusOK, "export{"},
 		{"GET", "/css/site.css", "", http.StatusOK, "tailwindcss"},

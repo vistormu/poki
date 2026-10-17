@@ -56,6 +56,13 @@ css-check: _node
     cmp -s "$fresh" view/ui/static/css/site.css || { echo "site.css is stale — run: just css"; exit 1; }
     echo "site.css is current"
 
+# copy the self-hosted fonts out of the pinned @fontsource packages (latin)
+fonts: _node
+    cp node_modules/@fontsource/chango/files/chango-latin-400-normal.woff2 view/ui/static/fonts/
+    cp node_modules/@fontsource/bagel-fat-one/files/bagel-fat-one-latin-400-normal.woff2 view/ui/static/fonts/
+    cp node_modules/@fontsource/fredoka/files/fredoka-latin-{600,700}-normal.woff2 view/ui/static/fonts/
+    cp node_modules/@fontsource/share-tech-mono/files/share-tech-mono-latin-400-normal.woff2 view/ui/static/fonts/
+
 # install node_modules from the lockfile when it is missing (it is not synced)
 # or was built for another os (tailwind loads native binaries per os/cpu).
 _node:
