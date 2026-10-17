@@ -15,7 +15,8 @@ through `POST /api/sync` (`/healthz` says the server and its db are up).
 | recipe       | what it does                              |
 | ------------ | ----------------------------------------- |
 | `just run`   | build the css, start the server on `localhost:8091` |
-| `just test`  | `go test -race ./...`                     |
+| `just test`  | `test-js` + `go test -race ./...`         |
+| `just test-js` | `node --test` the client's pure modules (`view/ui/test/`) |
 | `just lint`  | `gofmt` + `go vet`                        |
 | `just check` | `lint` + `css-check` + `test`, the gate before a commit |
 | `just vendor` | re-download pinned preact, hooks and htm, checked against a second cdn |

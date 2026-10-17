@@ -4,8 +4,12 @@ htm-version := "3.1.1"
 run: css
     go run . run
 
-test:
+test: test-js
     go test -race ./...
+
+# the client's pure modules (sync, outbox, …), without a browser
+test-js:
+    node --test 'view/ui/test/*.test.js'
 
 # the milestone gate
 check: lint css-check test

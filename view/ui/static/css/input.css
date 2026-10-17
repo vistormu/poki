@@ -9,6 +9,8 @@
   --color-*: initial;
   --color-paper: #f7f3ea;
   --color-ink: #141414;
+  --color-gold: #e8b93a;
+  --color-pink: #e5487a;
 }
 
 /* a phone app, not a web page (roadmap m7): the body never scrolls or

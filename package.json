@@ -1,6 +1,7 @@
 {
   "name": "poki",
   "private": true,
+  "type": "module",
   "scripts": {
     "css": "tailwindcss -i view/ui/static/css/input.css -o view/ui/static/css/site.css --minify",
     "css:watch": "tailwindcss -i view/ui/static/css/input.css -o view/ui/static/css/site.css --watch"
