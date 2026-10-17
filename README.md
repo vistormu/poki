@@ -40,9 +40,16 @@ go + net/http + sqlite, one binary, self-hosted behind tailscale.
 | `poki op meal ingredient add <meal> <item> [amount]` | add an item to a meal, the amount in its unit: `200`, `0.5`, `0,5`, `1/2`; none for unit `none` |
 | `poki op meal ingredient set <meal> <item> [amount]` | change an ingredient's amount; none takes it away |
 | `poki op meal ingredient rm <meal> <item>` | take an item off a meal (it goes if nothing else keeps it) |
+| `poki op plan add <date> <slot> <meal>` / `<date> <slot> --no-meal` | place a meal last in a slot (`lunch`, `dinner`), or mark it no meal |
+| `poki op plan show [--from <date>] [--days <n>]` | the plan, day by day (today and 7 days by default): ids, meals, marks |
+| `poki op plan move <entry> <date> <slot>` | move a planned meal last into another slot |
+| `poki op plan swap <entry> <entry>` | swap two planned meals' places |
+| `poki op plan rm <entry>` | take a meal or no meal off the plan; its list entries stay |
+| `poki op plan mark <entry> <item> buy\|check\|none` | mark a planned meal's ingredient: on the list to buy, to check (?), or off it |
 
 a row is named by its id, its name (when no other row has it), or the first
-characters of its id (4 or more; `list` shows 8).
+characters of its id (4 or more; `list` shows 8). a plan entry only by its id.
+dates are `YYYY-MM-DD`.
 
 ## env
 
