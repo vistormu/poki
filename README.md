@@ -32,6 +32,14 @@ go + net/http + sqlite, one binary, self-hosted behind tailscale.
 | `poki op item group <item> <group>` / `<item> --other` | give an item its group, or take it off (it goes if nothing uses it) |
 | `poki op item edit <item> [--name] [--unit]` | fix a typo or the unit; amounts stay as they are |
 | `poki op item rm <item>` | delete an item; refused while a meal or the list uses it |
+| `poki op meal add <name>` | add a meal |
+| `poki op meal list` | the meals, alphabetical (no meal is not one) |
+| `poki op meal show <meal>` | a meal and its ingredients with their amounts |
+| `poki op meal rename <meal> <name>` | rename a meal |
+| `poki op meal rm <meal>` | delete a meal and its plan entries; their list entries stay |
+| `poki op meal ingredient add <meal> <item> [amount]` | add an item to a meal, the amount in its unit: `200`, `0.5`, `0,5`, `1/2`; none for unit `none` |
+| `poki op meal ingredient set <meal> <item> [amount]` | change an ingredient's amount; none takes it away |
+| `poki op meal ingredient rm <meal> <item>` | take an item off a meal (it goes if nothing else keeps it) |
 
 a row is named by its id, its name (when no other row has it), or the first
 characters of its id (4 or more; `list` shows 8).

@@ -41,7 +41,7 @@ const sweepSeed = `
 		('loose', 'salt', 'none', NULL, 1);
 	INSERT INTO ingredients (id, meal_id, item_id, amount, rev) VALUES ('n', 'm', 'in-meal', 200, 1);
 	INSERT INTO list_entries (id, item_id, state, rev) VALUES ('l', 'on-list', 'buy', 1);
-	UPDATE rev SET value = 1;`
+	UPDATE rev SET value = 10;`
 
 func TestDeleteGroupSweepsItsUnusedItems(t *testing.T) {
 	ctx := context.Background()
@@ -58,11 +58,11 @@ func TestDeleteGroupSweepsItsUnusedItems(t *testing.T) {
 	}
 	// what changed carries the delete's rev, so phones hear of it
 	var n int
-	if err := s.db.Get(&n, `SELECT count(*) FROM items WHERE rev = 2`); err != nil {
+	if err := s.db.Get(&n, `SELECT count(*) FROM items WHERE rev = 11`); err != nil {
 		t.Fatal(err)
 	}
 	if n != 3 {
-		t.Errorf("%d items at rev 2, want 3 (two to Other, one gone)", n)
+		t.Errorf("%d items at the delete's rev, want 3 (two to Other, one gone)", n)
 	}
 	var left int
 	if err := s.db.Get(&left, `SELECT count(*) FROM items WHERE group_id IS NOT NULL`); err != nil {

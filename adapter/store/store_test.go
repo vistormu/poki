@@ -116,12 +116,13 @@ func TestEveryTableIsSynced(t *testing.T) {
 func TestWriteBumpsRev(t *testing.T) {
 	ctx := context.Background()
 	s := New(testDB(t))
-	if rev, _ := s.Rev(ctx); rev != 0 {
-		t.Fatalf("rev = %d on a new db, want 0", rev)
+	base, err := s.Rev(ctx) // the migrations' own writes (no meal) come first
+	if err != nil {
+		t.Fatal(err)
 	}
 
 	var stamped int64
-	err := s.write(ctx, func(t *tx) error {
+	err = s.write(ctx, func(t *tx) error {
 		stamped = t.rev
 		_, err := t.ExecContext(ctx, `INSERT INTO meals (id, name, rev) VALUES ('m1', 'lasagna', ?)`, t.rev)
 		return err
@@ -129,8 +130,8 @@ func TestWriteBumpsRev(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if rev, _ := s.Rev(ctx); rev != 1 || stamped != 1 {
-		t.Errorf("after one write rev = %d, stamped %d; want 1, 1", rev, stamped)
+	if rev, _ := s.Rev(ctx); rev != base+1 || stamped != base+1 {
+		t.Errorf("after one write rev = %d, stamped %d; want %d", rev, stamped, base+1)
 	}
 
 	// a failed write leaves neither its rows nor its rev
@@ -145,11 +146,11 @@ func TestWriteBumpsRev(t *testing.T) {
 		t.Fatalf("err = %v, want boom", err)
 	}
 	var n int
-	if err := s.db.Get(&n, `SELECT count(*) FROM meals`); err != nil {
+	if err := s.db.Get(&n, `SELECT count(*) FROM meals WHERE id LIKE 'm_'`); err != nil {
 		t.Fatal(err)
 	}
-	if rev, _ := s.Rev(ctx); rev != 1 || n != 1 {
-		t.Errorf("after a failed write rev = %d, meals %d; want 1, 1", rev, n)
+	if rev, _ := s.Rev(ctx); rev != base+1 || n != 1 {
+		t.Errorf("after a failed write rev = %d, meals %d; want %d, 1", rev, n, base+1)
 	}
 }
 
@@ -162,6 +163,7 @@ func TestDelIsATombstone(t *testing.T) {
 	}); err != nil {
 		t.Fatal(err)
 	}
+	created, _ := s.Rev(ctx)
 	del := func() error {
 		return s.write(ctx, func(t *tx) error { return t.del(ctx, "meals", "m1") })
 	}
@@ -175,8 +177,8 @@ func TestDelIsATombstone(t *testing.T) {
 	if err := s.db.Get(&row, `SELECT rev, deleted FROM meals WHERE id = 'm1'`); err != nil {
 		t.Fatalf("the deleted row is gone: %v", err)
 	}
-	if !row.Deleted || row.Rev != 2 {
-		t.Errorf("deleted row = %+v, want deleted at rev 2", row)
+	if !row.Deleted || row.Rev != created+1 {
+		t.Errorf("deleted row = %+v, want deleted at rev %d", row, created+1)
 	}
 
 	// deleting again keeps the first tombstone's rev
@@ -186,8 +188,8 @@ func TestDelIsATombstone(t *testing.T) {
 	if err := s.db.Get(&row, `SELECT rev, deleted FROM meals WHERE id = 'm1'`); err != nil {
 		t.Fatal(err)
 	}
-	if row.Rev != 2 {
-		t.Errorf("rev = %d after a second delete, want 2", row.Rev)
+	if row.Rev != created+1 {
+		t.Errorf("rev = %d after a second delete, want %d", row.Rev, created+1)
 	}
 
 	if err := s.write(ctx, func(t *tx) error { return t.del(ctx, "meals; DROP TABLE meals", "m1") }); err == nil {

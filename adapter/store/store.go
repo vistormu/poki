@@ -5,6 +5,7 @@ import (
 	"context"
 	"database/sql"
 	"embed"
+	"errors"
 	"fmt"
 	"io/fs"
 	"net/url"
@@ -165,6 +166,14 @@ func (t *tx) sweep(ctx context.Context) error {
 	return err
 }
 
+// notFound turns "no rows" into model.ErrNotFound, for what.
+func notFound(err error, what string) error {
+	if errors.Is(err, sql.ErrNoRows) {
+		return fmt.Errorf("%s: %w", what, model.ErrNotFound)
+	}
+	return err
+}
+
 // exec1 runs a statement that must change one live row: none is not found.
 func (t *tx) exec1(ctx context.Context, what, q string, args ...any) error {
 	res, err := t.ExecContext(ctx, q, args...)
@@ -194,3 +203,6 @@ func (t *tx) del(ctx context.Context, table, id string) error {
 		`UPDATE `+table+` SET deleted = 1, rev = ? WHERE id = ? AND deleted = 0`, t.rev, id)
 	return err
 }
+
+// DB is the connection, for tests that look under the services.
+func (s *Store) DB() *sqlx.DB { return s.db }

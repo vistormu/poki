@@ -15,7 +15,7 @@ func opCmd() *cobra.Command {
 		Use:   "op",
 		Short: "operate on the data from the terminal",
 	}
-	op.AddCommand(opGroupCmd(), opItemCmd())
+	op.AddCommand(opGroupCmd(), opItemCmd(), opMealCmd())
 	return op
 }
 
@@ -23,6 +23,7 @@ func opCmd() *cobra.Command {
 type services struct {
 	groups *service.Groups
 	items  *service.Items
+	meals  *service.Meals
 }
 
 // openServices opens POKI_DB and builds the services on it; done closes it.
@@ -33,8 +34,10 @@ func openServices(cmd *cobra.Command) (services, func(), error) {
 	}
 	st := store.New(db)
 	groups := service.NewGroups(st)
+	items := service.NewItems(st, groups)
 	return services{
 		groups: groups,
-		items:  service.NewItems(st, groups),
+		items:  items,
+		meals:  service.NewMeals(st, items),
 	}, func() { db.Close() }, nil
 }
