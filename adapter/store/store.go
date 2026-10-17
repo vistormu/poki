@@ -13,6 +13,8 @@ import (
 	"github.com/jmoiron/sqlx"
 	"github.com/pressly/goose/v3"
 	_ "modernc.org/sqlite" // pure go: no cgo, a static binary
+
+	"poki/domain/model"
 )
 
 // Store implements the service store interfaces against sqlite.
@@ -118,6 +120,9 @@ func (s *Store) Rev(ctx context.Context) (int64, error) {
 type tx struct {
 	*sqlx.Tx
 	rev int64
+	// mayBeUnused are the items this write may have left with no group and no
+	// use; the ones it did are deleted before it commits (decisions/0012).
+	mayBeUnused []string
 }
 
 // write runs fn in a transaction that first bumps rev, and commits if fn
@@ -135,7 +140,41 @@ func (s *Store) write(ctx context.Context, fn func(*tx) error) error {
 	if err := fn(t); err != nil {
 		return err
 	}
+	if err := t.sweep(ctx); err != nil {
+		return fmt.Errorf("sweep unused items: %w", err)
+	}
 	return sqlTx.Commit()
+}
+
+// sweep deletes the items in mayBeUnused that have no group and that no live
+// ingredient or list entry uses. only those: an item made with no group, and
+// never used, stays until something drops it.
+func (t *tx) sweep(ctx context.Context) error {
+	if len(t.mayBeUnused) == 0 {
+		return nil
+	}
+	q, args, err := sqlx.In(`UPDATE items SET deleted = 1, rev = ?
+		WHERE id IN (?) AND deleted = 0 AND group_id IS NULL
+		AND NOT EXISTS (SELECT 1 FROM ingredients WHERE item_id = items.id AND deleted = 0)
+		AND NOT EXISTS (SELECT 1 FROM list_entries WHERE item_id = items.id AND deleted = 0)`,
+		t.rev, t.mayBeUnused)
+	if err != nil {
+		return err
+	}
+	_, err = t.ExecContext(ctx, q, args...)
+	return err
+}
+
+// exec1 runs a statement that must change one live row: none is not found.
+func (t *tx) exec1(ctx context.Context, what, q string, args ...any) error {
+	res, err := t.ExecContext(ctx, q, args...)
+	if err != nil {
+		return err
+	}
+	if n, _ := res.RowsAffected(); n == 0 {
+		return fmt.Errorf("%s: %w", what, model.ErrNotFound)
+	}
+	return nil
 }
 
 // tables are the synced tables; a table name is only ever one of these, never
