@@ -1,0 +1,62 @@
+/* placeholder tokens until m10 brings figma's (docs/design/figma.md). */
+
+@import "tailwindcss" source(none);
+@source "../index.html";
+@source "../js";
+@source not "../js/vendor";
+
+@theme {
+  --color-*: initial;
+  --color-paper: #f7f3ea;
+  --color-ink: #141414;
+}
+
+/* a phone app, not a web page (roadmap m7): the body never scrolls or
+   bounces; only .scroll (a tab's content) does. no zoom on double-tap, no zoom
+   on focus (inputs are 16px or more), no tap flash, no selecting controls. */
+@layer base {
+  html,
+  body {
+    height: 100%;
+    overflow: hidden;
+    overscroll-behavior: none;
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+  }
+  body {
+    position: fixed;
+    inset: 0;
+    margin: 0;
+    background: var(--color-paper);
+    color: var(--color-ink);
+    font-family: system-ui, sans-serif;
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+  }
+  #app {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    padding: env(safe-area-inset-top) env(safe-area-inset-right) 0 env(safe-area-inset-left);
+  }
+  .scroll {
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
+  }
+  .tabs {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+  button,
+  nav,
+  [role="button"] {
+    user-select: none;
+    -webkit-user-select: none;
+    -webkit-touch-callout: none;
+  }
+  input,
+  textarea,
+  select {
+    font-size: max(16px, 1em);
+  }
+}

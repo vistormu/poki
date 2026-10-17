@@ -6,8 +6,11 @@ import (
 	"log"
 	"net/http"
 	"os/signal"
+	"strings"
 	"syscall"
 	"time"
+
+	"poki/view/ui"
 )
 
 type Config struct {
@@ -30,7 +33,7 @@ func New(cfg Config) *Server {
 
 func routes(cfg Config) http.Handler {
 	mux := http.NewServeMux()
-	mux.HandleFunc("GET /{$}", home)
+	mux.Handle("GET /", noListing(http.FileServerFS(ui.Static())))
 	mux.HandleFunc("POST /api/sync", syncHandler(cfg.Sync))
 	mux.HandleFunc("GET /healthz", healthz(cfg.Ping))
 	return mux
@@ -62,13 +65,14 @@ func (s *Server) Run(ctx context.Context) error {
 	return s.http.Shutdown(shutdownCtx)
 }
 
-// home is a placeholder until m7 brings the client shell.
-func home(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "text/html; charset=utf-8")
-	_, _ = w.Write([]byte(`<!doctype html>
-<html lang="en">
-<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>poki</title></head>
-<body>poki</body>
-</html>
-`))
+// noListing 404s directory paths but the root (index.html), so no folder
+// lists its files.
+func noListing(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path != "/" && strings.HasSuffix(r.URL.Path, "/") {
+			http.NotFound(w, r)
+			return
+		}
+		next.ServeHTTP(w, r)
+	})
 }

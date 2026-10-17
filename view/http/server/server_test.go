@@ -36,11 +36,16 @@ func TestRoutes(t *testing.T) {
 		status             int
 		want               string
 	}{
-		{"GET", "/", "", http.StatusOK, "<body>poki</body>"},
+		{"GET", "/", "", http.StatusOK, `<div id="app">`},
+		{"GET", "/js/app.js", "", http.StatusOK, "render("},
+		{"GET", "/js/vendor/preact.module.js", "", http.StatusOK, "export{"},
+		{"GET", "/css/site.css", "", http.StatusOK, "tailwindcss"},
+		{"GET", "/js/", "", http.StatusNotFound, ""},
+		{"GET", "/js/vendor/", "", http.StatusNotFound, ""},
 		{"GET", "/nope", "", http.StatusNotFound, ""},
 		{"POST", "/", "", http.StatusMethodNotAllowed, ""},
 		{"GET", "/healthz", "", http.StatusOK, "ok"},
-		{"GET", "/api/sync", "", http.StatusMethodNotAllowed, ""},
+		{"GET", "/api/sync", "", http.StatusNotFound, ""}, // falls to the files: there is none
 		{"POST", "/api/sync", `{"since": 0, "ops": []}`, http.StatusOK,
 			`{"rev":7,"changes":[{"table":"meals","id":"m","rev":7,"deleted":false,"fields":{"name":"soup"}}],"rejected":[]}`},
 		{"POST", "/api/sync", `{"since": 3, "ops": [{"op": "bad", "type": "del", "table": "meals", "id": "m"}]}`, http.StatusOK,

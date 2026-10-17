@@ -5,17 +5,28 @@ planning and groceries for two people: meals with their ingredients, a day-by-da
 plan of lunches and dinners, and a grocery list sorted along our path through the
 store. offline-first: it opens and works with no connection.
 
-go + net/http + sqlite, one binary, self-hosted behind tailscale. the phones sync
+go + net/http + sqlite, one binary, self-hosted behind tailscale. the client is
+preact + htm as plain es modules (`view/ui/static/`, embedded and served at `/`),
+vendored, with no build step. the phones sync
 through `POST /api/sync` (`/healthz` says the server and its db are up).
 
 ## dev loop
 
 | recipe       | what it does                              |
 | ------------ | ----------------------------------------- |
-| `just run`   | start the server on `localhost:8091`      |
+| `just run`   | build the css, start the server on `localhost:8091` |
 | `just test`  | `go test -race ./...`                     |
 | `just lint`  | `gofmt` + `go vet`                        |
-| `just check` | `lint` + `test`, the gate before a commit |
+| `just check` | `lint` + `css-check` + `test`, the gate before a commit |
+| `just vendor` | re-download pinned preact, hooks and htm, checked against a second cdn |
+| `just css`   | compile tailwind: `input.css` → `site.css`  |
+| `just css-watch` | recompile the css on change              |
+| `just css-check` | fail if the committed `site.css` is stale |
+
+the css is tailwind v4 (`view/ui/static/css/input.css`). the compiled `site.css` is
+committed and embedded, so `go build` and `just test` work without node; only the
+css recipes need node + npm (they run `npm ci` themselves when `node_modules` is
+missing or was installed on another os).
 
 ## cli
 
