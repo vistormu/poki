@@ -42,13 +42,13 @@ CREATE TABLE meals (
 );
 CREATE INDEX meals_rev ON meals (rev);
 
--- amount is in the item's unit, whole grams or a whole count; none for `none`
--- items (decisions/0005).
+-- amount is in the item's unit, and may be a fraction (half an onion, 0.5);
+-- none for `none` items (decisions/0005).
 CREATE TABLE ingredients (
     id      TEXT    PRIMARY KEY NOT NULL,
     meal_id TEXT    NOT NULL REFERENCES meals (id),
     item_id TEXT    NOT NULL REFERENCES items (id),
-    amount  INTEGER CHECK (amount > 0),
+    amount  REAL    CHECK (amount > 0),
     rev     INTEGER NOT NULL,
     deleted INTEGER NOT NULL DEFAULT 0 CHECK (deleted IN (0, 1))
 );
@@ -73,7 +73,7 @@ CREATE INDEX plan_entries_date ON plan_entries (date, slot, position) WHERE dele
 CREATE TABLE list_entries (
     id            TEXT    PRIMARY KEY NOT NULL,
     item_id       TEXT    NOT NULL REFERENCES items (id),
-    amount        INTEGER CHECK (amount > 0),
+    amount        REAL    CHECK (amount > 0),
     plan_entry_id TEXT    REFERENCES plan_entries (id),
     state         TEXT    NOT NULL CHECK (state IN ('check', 'buy', 'bought')),
     rev           INTEGER NOT NULL,

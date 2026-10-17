@@ -216,6 +216,7 @@ func TestSchemaHolds(t *testing.T) {
 		{"an item with no group", `INSERT INTO items (id, name, unit, rev) VALUES ('i2', 'salt', 'none', 1)`, true},
 		{"an item in a missing group", `INSERT INTO items (id, name, unit, group_id, rev) VALUES ('i2', 'salt', 'none', 'gx', 1)`, false},
 		{"a zero amount", `INSERT INTO list_entries (id, item_id, amount, state, rev) VALUES ('l2', 'i1', 0, 'buy', 1)`, false},
+		{"a fractional amount", `INSERT INTO list_entries (id, item_id, amount, state, rev) VALUES ('l2', 'i1', 0.5, 'buy', 1)`, true},
 		{"a list entry with no amount", `INSERT INTO list_entries (id, item_id, state, rev) VALUES ('l2', 'i1', 'buy', 1)`, true},
 		{"a state outside check, buy, bought", `INSERT INTO list_entries (id, item_id, state, rev) VALUES ('l2', 'i1', 'have', 1)`, false},
 		{"the same item twice in a meal", `INSERT INTO ingredients (id, meal_id, item_id, rev) VALUES ('n2', 'm1', 'i1', 1)`, false},
