@@ -1,6 +1,7 @@
 // the meals tab (spec → meals; figma, Screens, section Meals): every meal,
 // searched in place from the deck's key (Create first); a meal's page, always
-// editable and saved at once; its name; the item picker for its ingredients.
+// editable and saved at once, and placed on the plan from there; its name;
+// the item picker for its ingredients.
 // phone: one page at a time. desktop: the meals in columns, the open page in
 // the sidebar (decisions/0011).
 import { useEffect, useRef, useState } from "preact/hooks";
@@ -22,7 +23,7 @@ import { toast } from "./toasts.js";
 
 // a page is {name: "meal" | "name" | "pick", id, editing?}, or null for the
 // meals themselves.
-export function MealsTab({ data, desktop, nav, sync, page, setPage }) {
+export function MealsTab({ data, desktop, nav, sync, page, setPage, app }) {
   const [query, setQuery] = useState(null); // null: not searching
   const open = page && data.get("meals", page.id) ? page : null; // gone when deleted elsewhere
   const deck = html`<${Deck} kind="Meals" title="Meals" sync=${sync} onSearch=${() => setQuery(query === null ? "" : null)} />`;
@@ -36,7 +37,7 @@ export function MealsTab({ data, desktop, nav, sync, page, setPage }) {
   };
   const search = query !== null && html`<${Search} data=${data} query=${query} setQuery=${setQuery} onCreate=${create} onOpen=${(id) => go({ name: "meal", id })} />`;
 
-  const pageParts = open && parts(data, open, go);
+  const pageParts = open && parts(data, open, go, app);
   if (desktop) {
     return html`<${Layout}
       desktop
@@ -60,7 +61,7 @@ export function MealsTab({ data, desktop, nav, sync, page, setPage }) {
 }
 
 // parts are an open page's head (its sub header) and body.
-function parts(data, page, go) {
+function parts(data, page, go, app) {
   const meal = data.get("meals", page.id);
   const toMeal = () => go({ name: "meal", id: meal.id });
   if (page.name === "name") {
@@ -114,7 +115,8 @@ function parts(data, page, go) {
         />`,
       )}
       <${AddRow} label="Add ingredient" onClick=${() => go({ name: "pick", id: meal.id, editing: null })} />
-      <div class="pt-6">
+      <div class="flex flex-col gap-2 pt-6">
+        <${Block} tone="gold" fill="soft" text="Place on the plan" leading="plus" onClick=${() => app.place(meal.id)} />
         <${Block} tone="pink" fill="soft" text="Delete meal" leading="close" onClick=${del} />
       </div>
     `,

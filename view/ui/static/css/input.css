@@ -235,7 +235,8 @@
   }
 }
 
-/* the reels turn while a sync is out or the server can't be reached */
+/* the reels turn while changes wait or the server can't be reached; one
+   turn at least (deck.js stops them at a turn's end) */
 @keyframes reel {
   to {
     transform: rotate(360deg);

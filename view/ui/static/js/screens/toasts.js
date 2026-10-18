@@ -1,5 +1,6 @@
 // the toast (spec → messages): one at a time, over the screen, never blocking.
-// a message goes after a few seconds; an error stays until tapped.
+// a message goes after a few seconds (one that stays, moving a meal, goes
+// when the move ends); an error stays until tapped.
 import { useEffect, useState } from "preact/hooks";
 
 import { html } from "../ui/html.js";
@@ -10,11 +11,11 @@ let current = null;
 let timer = null;
 const listeners = new Set();
 
-// toast shows {text, action, onAction} or {kind: "error", text}.
+// toast shows {text, action, onAction, stay} or {kind: "error", text}.
 export function toast(t) {
   clearTimeout(timer);
   current = { kind: "message", ...t };
-  if (current.kind === "message") timer = setTimeout(dismiss, FOR);
+  if (current.kind === "message" && !current.stay) timer = setTimeout(dismiss, FOR);
   listeners.forEach((f) => f(current));
 }
 
