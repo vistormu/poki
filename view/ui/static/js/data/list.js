@@ -31,8 +31,10 @@ export function total(entries) {
 }
 
 // sheet is the list as it reads (spec → list): the ? entries one by one with
-// their meals; the items to buy by group in path order, Other last, a row per
-// item with its total; the bought ones apart, in path order.
+// their meals; every group in path order, empty ones too, a row per item to
+// buy with its total, then Other when it holds something; the bought ones
+// apart, in path order. an empty list has no groups either (the cleared
+// list's one muted line).
 export function sheet(data) {
   const groups = path(data);
   const items = new Map(data.all("items").map((it) => [it.id, it]));
@@ -59,7 +61,8 @@ export function sheet(data) {
   for (const s of shelves) s.rows.sort((a, b) => byName(a.item, b.item));
   const order = (r) => shelves.indexOf(shelfOf(r.item));
   const bought = [...rows.bought.values()].map(done).sort((a, b) => order(a) - order(b) || byName(a.item, b.item));
-  return { check, groups: shelves.filter((s) => s.rows.length), bought };
+  const empty = !check.length && !bought.length && shelves.every((s) => !s.rows.length);
+  return { check, groups: empty ? [] : shelves.filter((s) => s.group || s.rows.length), bought };
 }
 
 // add puts a picked item on the list by hand, to buy, with its amount.
@@ -129,6 +132,18 @@ export async function renameGroup(data, id, name) {
   if (!n || !g || g.name === n) return false;
   await data.put("groups", id, { name: n });
   return true;
+}
+
+// moveGroup puts a group at a place on the path (0 first) and renumbers the
+// path 1…n; only the groups whose position changed are written.
+export async function moveGroup(data, id, to) {
+  const ids = path(data).map((g) => g.id);
+  const from = ids.indexOf(id);
+  if (from < 0 || from === to) return;
+  ids.splice(from, 1);
+  ids.splice(Math.max(0, Math.min(to, ids.length)), 0, id);
+  const ops = ids.flatMap((gid, i) => (data.get("groups", gid).position === i + 1 ? [] : [put("groups", gid, { position: i + 1 })]));
+  if (ops.length) await data.change(ops);
 }
 
 // giveGroup gives an item its group, for good.

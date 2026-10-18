@@ -17,6 +17,7 @@ type Config struct {
 	Addr string
 	Sync Syncer
 	Ping func(context.Context) error // the db answers: /healthz
+	Dev  bool                        // no offline shell: every load is this build
 }
 
 type Server struct {
@@ -34,7 +35,11 @@ func New(cfg Config) *Server {
 func routes(cfg Config) http.Handler {
 	mux := http.NewServeMux()
 	mux.Handle("GET /", noListing(http.FileServerFS(ui.Static())))
-	mux.HandleFunc("GET /sw.js", serviceWorker())
+	if cfg.Dev {
+		mux.HandleFunc("GET /sw.js", devWorker)
+	} else {
+		mux.HandleFunc("GET /sw.js", serviceWorker())
+	}
 	mux.HandleFunc("GET /dev/components", func(w http.ResponseWriter, r *http.Request) {
 		http.ServeFileFS(w, r, ui.Static(), "dev/components.html")
 	})

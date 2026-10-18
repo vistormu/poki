@@ -133,3 +133,18 @@ func TestServiceWorker(t *testing.T) {
 		t.Errorf("manifest Content-Type %q", ct)
 	}
 }
+
+func TestDevWorker(t *testing.T) {
+	h := routes(Config{Dev: true})
+	rec := httptest.NewRecorder()
+	h.ServeHTTP(rec, httptest.NewRequest("GET", "/sw.js", nil))
+	body := rec.Body.String()
+	for _, want := range []string{"skipWaiting", "caches.delete", "unregister"} {
+		if !strings.Contains(body, want) {
+			t.Errorf("the dev worker lacks %s", want)
+		}
+	}
+	if strings.Contains(body, "FILES") || strings.Contains(body, "addAll") {
+		t.Error("the dev worker caches")
+	}
+}

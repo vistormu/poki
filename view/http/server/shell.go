@@ -30,3 +30,27 @@ func serviceWorker() http.HandlerFunc {
 		_, _ = w.Write(body)
 	}
 }
+
+// devWorkerSrc replaces whatever worker a browser kept (run --dev): it takes
+// over at once, drops every cached build, unregisters, and reloads the open
+// pages if it dropped one, so they load from the server. with nothing cached
+// it only unregisters: the app registers it on every launch, and it goes.
+const devWorkerSrc = `self.addEventListener("install", () => self.skipWaiting());
+self.addEventListener("activate", (e) => {
+  e.waitUntil(
+    (async () => {
+      const keys = (await caches.keys()).filter((k) => k.startsWith("poki-"));
+      await Promise.all(keys.map((k) => caches.delete(k)));
+      await self.registration.unregister();
+      if (keys.length) for (const c of await self.clients.matchAll({ type: "window" })) c.navigate(c.url);
+    })(),
+  );
+});
+`
+
+// devWorker is /sw.js in a dev build.
+func devWorker(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "text/javascript; charset=utf-8")
+	w.Header().Set("Cache-Control", "no-cache")
+	_, _ = w.Write([]byte(devWorkerSrc))
+}

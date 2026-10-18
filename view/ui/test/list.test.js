@@ -64,7 +64,7 @@ test("tick and untick: the whole row, apart in path order", async () => {
     s.bought.map((r) => `${r.item.name} ${r.total ?? ""}`.trim()),
     ["Tomatoes 6", "Dish soap"],
   );
-  assert.deepEqual(shelves(s), ["Dairy: Greek yogurt 500"]);
+  assert.deepEqual(shelves(s), ["Fruit & veg: ", "Dairy: Greek yogurt 500"]); // an empty group still shows
   await l.untick(d, "tom");
   s = l.sheet(d);
   assert.deepEqual(shelves(s)[0], "Fruit & veg: Tomatoes 6");
@@ -92,10 +92,15 @@ test("clear: everything goes, unused ungrouped items too; undo puts it all back"
   assert.equal(s.check.length, 2);
   assert.deepEqual(shelves(s), ["Fruit & veg: Tomatoes 6", "Dairy: Greek yogurt 500", "Other: Dish soap, Toilet paper"]);
   assert.equal(await l.clear(await Data.open(memory())), null);
+  await l.clear(d);
+  assert.deepEqual(l.sheet(d).groups, []); // nothing on the list: no groups either
 });
 
 test("groups: add last, unique, not Other; rename; give an item one", async () => {
   const d = await kitchen();
+  const empty = await l.addGroup(d, "frozen");
+  assert.deepEqual(shelves(l.sheet(d)).slice(-2), ["Frozen: ", "Other: Dish soap"]); // a new group shows at once
+  await l.deleteGroup(d, empty);
   const id = await l.addGroup(d, "household", "soap");
   assert.deepEqual(
     l.path(d).map((g) => `${g.place} ${g.name}`),
@@ -126,4 +131,25 @@ test("deleteGroup: its items to Other, the unused go; undo puts the group and it
   await undo();
   assert.equal(d.get("items", "milk").group_id, "dairy");
   assert.deepEqual(shelves(l.sheet(d)), ["Fruit & veg: Tomatoes 6", "Dairy: Greek yogurt 500", "Other: Dish soap"]);
+});
+
+test("moveGroup: a group to another place, the path renumbered 1…n", async () => {
+  const d = await kitchen();
+  await l.addGroup(d, "bakery");
+  await l.addGroup(d, "frozen");
+  await d.put("groups", "veg", { position: 7 }); // gaps, as after a delete
+  const names = () => l.path(d).map((g) => `${g.place} ${g.name}`).join(", ");
+  assert.equal(names(), "1 Dairy, 2 Bakery, 3 Frozen, 4 Fruit & veg");
+  await l.moveGroup(d, "veg", 0);
+  assert.equal(names(), "1 Fruit & veg, 2 Dairy, 3 Bakery, 4 Frozen");
+  assert.deepEqual(
+    l.path(d).map((g) => g.position),
+    [1, 2, 3, 4],
+  );
+  await l.moveGroup(d, "dairy", 3);
+  assert.equal(names(), "1 Fruit & veg, 2 Bakery, 3 Frozen, 4 Dairy");
+  const before = d.outbox.length;
+  await l.moveGroup(d, "dairy", 3); // where it is: nothing written
+  assert.equal(d.outbox.length, before);
+  assert.deepEqual(shelves(l.sheet(d)), ["Fruit & veg: Tomatoes 6", "Bakery: ", "Frozen: ", "Dairy: Greek yogurt 500", "Other: Dish soap"]);
 });

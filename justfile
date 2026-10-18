@@ -1,8 +1,10 @@
 preact-version := "10.29.8"
 htm-version := "3.1.1"
 
+# the dev server: always this build (--dev: no offline shell, a browser's old
+# one is dropped). offline is tried on a release build, or the phone.
 run: css
-    go run . run
+    go run . run --dev
 
 test: test-js
     go test -race ./...

@@ -16,7 +16,7 @@ through `POST /api/sync` (`/healthz` says the server and its db are up).
 
 | recipe       | what it does                              |
 | ------------ | ----------------------------------------- |
-| `just run`   | build the css, start the server on `localhost:8091` |
+| `just run`   | build the css, start a dev server on `localhost:8091`: always this build, no offline shell (`run --dev`) |
 | `just test`  | `test-js` + `go test -race ./...`         |
 | `just test-js` | `node --test` the client's pure modules (`view/ui/test/`) |
 | `just lint`  | `gofmt` + `go vet`                        |
@@ -40,7 +40,7 @@ worker): open a fresh window to see a change.
 
 | command    | description          |
 | ---------- | -------------------- |
-| `poki run` | start the web server (migrates the db on boot) |
+| `poki run [--dev]` | start the web server (migrates the db on boot); `--dev` serves no offline shell and drops a browser's old one |
 | `poki migrate` | apply pending migrations, print the version |
 | `poki health` | ask the server on `POKI_ADDR` whether it is up and its db answers (`/healthz`); exit 1 if not |
 | `poki op group add <name>` | add a group, last on the path |
