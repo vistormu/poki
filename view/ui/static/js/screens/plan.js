@@ -74,7 +74,6 @@ export function PlanTab({ data, desktop, nav, sync, page, setPage, app }) {
   const deck = html`<${Deck}
     kind="Plan"
     title=${date === today ? "Today" : plan.local(date).toLocaleDateString("en-GB", { weekday: "short" })}
-    subtitle=${plan.label(date)}
     sync=${sync}
     days=${days}
     onBack=${() => show(plan.addDays(date, -7))}
@@ -96,7 +95,7 @@ export function PlanTab({ data, desktop, nav, sync, page, setPage, app }) {
     nav=${nav}
     head=${html`<${DeckHead}>${deck}</${DeckHead}>`}
     body=${html`<${Swipe} onDay=${(n) => show(plan.addDays(date, n))}>
-      ${plan.slots.map((slot, i) => html`<div class=${i ? "pt-5" : ""}><${Slot} data=${data} date=${date} slot=${slot} mode=${mode} act=${act} chevrons /></div>`)}
+      ${plan.slots.map((slot, i) => html`<div class=${i ? "pt-5" : ""}><${Slot} data=${data} date=${date} slot=${slot} mode=${mode} act=${act} /></div>`)}
     </${Swipe}>`}
   />`;
 }
@@ -129,16 +128,16 @@ function Swipe({ onDay, children }) {
 // Slot is a slot's header and what it holds: its meals, or no meal, then
 // its + (nothing after no meal); while moving or placing, Move here or Place
 // here instead, and the other meals swap.
-function Slot({ data, date, slot, mode, act, chevrons = false }) {
+function Slot({ data, date, slot, mode, act }) {
   const inSlot = plan.entries(data, date, slot);
   const noMeal = inSlot.find((p) => p.meal_id === NO_MEAL);
   const rows = inSlot.filter((p) => p.meal_id !== NO_MEAL);
   return html`
     <${Block} tone=${slotTones[slot]} text=${slotNames[slot]} trailing=${html`<${Ticks} />`} />
-    <${Meals} rows=${rows} mode=${mode} act=${act} chevrons=${chevrons} />
+    <${Meals} rows=${rows} mode=${mode} act=${act} />
     ${noMeal &&
     html`<div class="pt-2">
-      <${Block} tone="orchid" fill="soft" text="No meal" leading="no-meal" trailing=${chevrons ? "chevron" : null} onClick=${!mode && (() => act.planned(noMeal.id))} />
+      <${Block} tone="orchid" fill="soft" text="No meal" leading="no-meal" onClick=${!mode && (() => act.planned(noMeal.id))} />
     </div>`}
     ${mode && html`<div class="pt-2"><${Here} mode=${mode} onClick=${() => act.here(date, slot)} /></div>`}
     ${!mode && !noMeal && html`<div class="pt-2"><${AddRow} label=${`Add to ${slotNames[slot]}`} onClick=${() => act.pick(date, slot)} /></div>`}
@@ -147,14 +146,14 @@ function Slot({ data, date, slot, mode, act, chevrons = false }) {
 
 // Meals are a slot's meal rows: each opens its planned meal; while moving,
 // the one moved is muted and the others swap with it.
-function Meals({ rows, mode, act, chevrons, open }) {
-  return rows.map((p, i) => {
+function Meals({ rows, mode, act, open }) {
+  return rows.map((p) => {
     const moved = mode?.kind === "move" && p.id === mode.id;
     const swaps = mode?.kind === "move" && !moved;
     const onClick = !mode ? () => act.planned(p.id) : swaps ? () => act.swap(p.id) : null;
-    const trailing = swaps ? "swap" : !mode && chevrons ? "chevron" : null;
+    const trailing = swaps ? "swap" : null;
     return html`<div key=${p.id} class=${moved ? "opacity-40" : ""}>
-      <${Row} name=${p.meal.name} trailing=${trailing} selected=${open === p.id} divider=${i < rows.length - 1} onClick=${onClick} />
+      <${Row} name=${p.meal.name} trailing=${trailing} selected=${open === p.id} onClick=${onClick} />
     </div>`;
   });
 }
@@ -195,13 +194,12 @@ function parts(data, open, { back, startMove, act, app }) {
     />`,
     body: html`
       ${ins.map(
-        (n, i) => html`<${IngredientRow}
+        (n) => html`<${IngredientRow}
           key=${n.id}
           name=${n.item.name}
           detail=${format(n.amount, n.item.unit)}
           mark=${n.mark}
           onMark=${(v) => plan.mark(data, e.id, n, v)}
-          divider=${i < ins.length - 1}
         />`,
       )}
       <div class=${ins.length ? "pt-6" : ""}><${Block} tone="pink" fill="soft" text="Remove from plan" leading="close" onClick=${remove} /></div>
@@ -228,7 +226,7 @@ function MealPicker({ data, date, slot, act }) {
     <${Field} icon="search" value=${query} onInput=${setQuery} autofocus enterkeyhint="go" />
     ${fresh && html`<div class="pt-2"><${Block} tone="sky" fill="soft" text=${`Create “${name}”`} leading="plus" onClick=${async () => pick(await meals.createMeal(data, name))} /></div>`}
     ${empty && html`<div class="pt-2"><${Block} tone="orchid" fill="soft" text="No meal" leading="no-meal" onClick=${() => pick(NO_MEAL)} /></div>`}
-    <div class="pt-2">${found.map((m, i) => html`<${Row} key=${m.id} name=${m.name} divider=${i < found.length - 1} onClick=${() => pick(m.id)} />`)}</div>
+    <div class="pt-2">${found.map((m) => html`<${Row} key=${m.id} name=${m.name} onClick=${() => pick(m.id)} />`)}</div>
   `;
 }
 
@@ -258,7 +256,7 @@ function Board({ data, date, today, open, mode, act }) {
   </div>`;
 }
 
-// Cell is one day's slot on the board: its meals (no chevrons), or no meal
+// Cell is one day's slot on the board: its meals, or no meal
 // centred like a meal row, then its +, or Move here / Place here.
 function Cell({ data, date, slot, wash, open, mode, act }) {
   const inSlot = plan.entries(data, date, slot);

@@ -6,7 +6,6 @@ import { idb } from "./data/idb.js";
 import { post, Syncer } from "./data/sync.js";
 import { html } from "./ui/html.js";
 import { TabBar } from "./ui/tab-bar.js";
-import { TabRail } from "./ui/tab-rail.js";
 import { useData, useDesktop } from "./screens/hooks.js";
 import { MealsTab } from "./screens/meals.js";
 import { PlanTab } from "./screens/plan.js";
@@ -52,7 +51,7 @@ function App({ data, syncer }) {
       toast({ text: `Placing ${data.get("meals", id).name}`, action: "Cancel", onAction: () => setPage("Plan", (p) => ({ ...p, mode: null })), stay: true });
     },
   };
-  const nav = desktop ? html`<${TabRail} tabs=${tabs} active=${tab} onPick=${pick} />` : html`<${TabBar} tabs=${tabs} active=${tab} onPick=${pick} />`;
+  const nav = html`<${TabBar} tabs=${tabs} active=${tab} onPick=${pick} />`;
   const props = { data, desktop, nav, sync, app, page: pages[tab] || null, setPage: (p) => setPage(tab, p) };
   if (tab === "Plan") return html`<${PlanTab} ...${props} />`;
   if (tab === "List") return html`<${ListTab} ...${props} />`;

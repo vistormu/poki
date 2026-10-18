@@ -186,7 +186,7 @@ function Columns({ data, query, open, onOpen }) {
           return html`<button key=${m.id} type="button" class="flex flex-col text-left" onClick=${() => onOpen(m.id)}>
             <${Block} tone=${tone} text=${m.name} trailing=${html`<${Ticks} />`} />
             ${ins.map(
-              (x, j) => html`<${Row} key=${x.id} name=${x.item.name} amount=${format(x.amount, x.item.unit)} tone=${meals.toneOf(data, x.item)} divider=${j < ins.length - 1} />`,
+              (x) => html`<${Row} key=${x.id} name=${x.item.name} amount=${format(x.amount, x.item.unit)} tone=${meals.toneOf(data, x.item)} />`,
             )}
           </button>`;
         })}

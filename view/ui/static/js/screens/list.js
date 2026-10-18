@@ -87,7 +87,6 @@ function Sheet({ data, sheet, go, columns = false }) {
           trailingLabel=${`Move ${r.item.name}`}
           onTrailing=${() => drag.tapped() && go({ name: "give", item: r.item.id })}
           trailingProps=${{ onPointerDown: drag.start(r, key) }}
-          divider=${r !== shown[shown.length - 1]}
           onClick=${() => list.tick(data, r.item.id)}
         />
       </div>`,
@@ -102,13 +101,12 @@ function Sheet({ data, sheet, go, columns = false }) {
     check.length > 0 &&
       html`<${Part} key="check" head=${html`<${Block} tone="orchid" text="To check" trailing=${html`<${Ticks} />`} />`} pin=${!columns}>
         ${check.map(
-          (c, i) => html`<${IngredientRow}
+          (c) => html`<${IngredientRow}
             key=${c.entry.id}
             name=${c.item.name}
             detail=${[format(c.entry.amount, c.item.unit), c.meal].filter(Boolean).join(" · ")}
             mark="check"
             onMark=${(v) => list.resolve(data, c.entry.id, v === "buy" ? "buy" : "have")}
-            divider=${i < check.length - 1}
           />`,
         )}
       </${Part}>`,
@@ -132,13 +130,12 @@ function Sheet({ data, sheet, go, columns = false }) {
       html`<${Part} key="bought" head=${html`<${Block} tone="sky" fill="soft" text="Bought" leading="check" />`}>
         <div class="opacity-60">
           ${bought.map(
-            (r, i) => html`<${Row}
+            (r) => html`<${Row}
               key=${r.item.id}
               name=${r.item.name}
               amount=${format(r.total, r.item.unit)}
               tone=${r.tone}
               tick=${true}
-              divider=${i < bought.length - 1}
               onClick=${() => list.untick(data, r.item.id)}
             />`,
           )}
@@ -151,7 +148,7 @@ function Sheet({ data, sheet, go, columns = false }) {
       class="pointer-events-none fixed z-30 rounded-lg bg-paper shadow-soft"
       style=${{ left: `${held.rect.left + held.x - held.x0}px`, top: `${held.rect.top + held.y - held.y0}px`, width: `${held.rect.width}px` }}
     >
-      <${Row} name=${held.row.item.name} amount=${format(held.row.total, held.row.item.unit)} tone=${held.row.tone} tick=${false} trailing="move" divider=${false} />
+      <${Row} name=${held.row.item.name} amount=${format(held.row.total, held.row.item.unit)} tone=${held.row.tone} tick=${false} trailing="move" />
     </div>`;
   if (columns) return html`<div class="columns-[260px] gap-6 ${held ? "select-none" : ""}">${parts}</div>${lifted}`;
   return html`<div class=${held ? "select-none" : ""}>${parts}</div>${lifted}`;

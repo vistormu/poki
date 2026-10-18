@@ -74,6 +74,11 @@
   --shadow-soft: 0 8px 20px rgb(153 150 203 / 0.35);
 }
 
+/* where a raised thing meets the ground: tight ink, wide faint dusk */
+:root {
+  --contact: 0 2px 2px rgb(43 39 71 / 0.28), 0 6px 10px rgb(78 68 134 / 0.16);
+}
+
 /* type: one utility per figma text style */
 @utility type-display {
   font-family: var(--font-display);
@@ -142,21 +147,92 @@
   }
 }
 
-/* glow: gold, only the window title */
+/* glow: gold, the window title (lit things carry a glow of their own colour) */
 @utility glow {
   text-shadow: 0 0 12px rgb(239 198 106 / 0.85);
 }
 
-/* the dotted divider: 1 px ink at 60%, 2 on and 5 off, from the first letter
-   to the end of the last element (16 px in) */
-@utility divider {
+/* the 2.5D language (figma.md): one light from above, one view slightly from
+   above. only what every engine draws alike: gradients, box-shadows, borders. */
+
+/* the side: the visible thickness of what is raised, shaded from periwinkle
+   under the face to deep dusk at the floor, with a contact shadow. a span of
+   its own, under the face, offset by the thickness (--side) */
+@utility side {
   position: absolute;
-  left: 16px;
-  right: 16px;
-  bottom: 0;
-  height: 1px;
-  opacity: 0.6;
-  background: repeating-linear-gradient(to right, var(--color-ink) 0 2px, transparent 2px 7px);
+  inset: var(--side, 3px) 0 calc(-1 * var(--side, 3px)) 0;
+  border-radius: inherit;
+  background-image: linear-gradient(to bottom, #7a72b8 0, #7a72b8 calc(100% - var(--side, 3px) - 2px), #4e4486 calc(100% - var(--side, 3px) * 0.4), #2e2860 100%);
+  box-shadow: var(--contact);
+  pointer-events: none;
+}
+@utility contact {
+  box-shadow: var(--contact);
+}
+
+/* a keycap's base and face (keys square, latches round): the base is its
+   side, the face inset 2 · 2 · 6 in it; pressed or latched, the face sinks
+   flush (2 · 2 · 4 · 2 → inset 4 at the top) */
+@utility cap-base {
+  position: absolute;
+  inset: 0;
+  border: 2px solid var(--color-ink);
+  border-radius: inherit;
+  background-image: linear-gradient(to bottom, #7a72b8, #5a5096 60%, #2e2860);
+  box-shadow: var(--contact);
+}
+@utility cap-face {
+  position: absolute;
+  inset: 2px 2px 6px 2px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--cap-face-r, 6px);
+  background-image: linear-gradient(to bottom, #fff, #ece8f6);
+  box-shadow: inset 0 1px 0 #fff;
+}
+@utility cap-down {
+  & > .cap-base {
+    box-shadow: 0 1px 1px rgb(43 39 71 / 0.22);
+  }
+  & > .cap-face {
+    inset: 4px 2px 2px 2px;
+    box-shadow: inset 0 2px 3px rgb(43 39 71 / 0.2);
+  }
+}
+
+/* glass: set in, never stuck on (a shade under its top edge, a lit lip, an
+   ink rim at 18%). clear has the diagonal reflection (--shine); frosted has
+   the grain instead (grain frosted). --glass is its fill: the days'
+   lavender, or a tint (glass-tone) */
+@utility glass {
+  border: var(--glass-w, 1px) solid var(--glass-rim, rgb(43 39 71 / 0.18));
+  box-shadow: var(--glass-in, inset 0 2px 3px rgb(43 39 71 / 0.28)), var(--glass-out, 0 1px 0 rgb(255 255 255 / 0.9));
+  background-image:
+    linear-gradient(to bottom right, transparent 36%, rgb(255 255 255 / calc(var(--shine, 0.5) * (1 - var(--frost, 0)))) 42%, rgb(255 255 255 / calc(var(--shine, 0.5) * 0.35 * (1 - var(--frost, 0)))) 56%, transparent 62%),
+    var(--glass, linear-gradient(to bottom, #e6e2f2, #f3f0fa));
+}
+@utility glass-tone {
+  --glass: linear-gradient(to bottom, color-mix(in srgb, var(--tone), white 45%), color-mix(in srgb, var(--tone), white 68%));
+  --shine: 0.35;
+}
+@utility frosted {
+  --frost: 1;
+}
+/* lit from behind: the current one (the picked day, the current tab), gold */
+@utility glass-lit {
+  --glass-rim: var(--color-gold);
+  --glass-in: inset 0 2px 3px rgb(0 0 0 / 0.12);
+  --glass-out: 0 0 12px rgb(239 198 106 / 0.75);
+  --glass: radial-gradient(closest-side, #fff7dc, var(--color-gold) 55%, color-mix(in srgb, var(--color-gold), white 25%) 100%);
+  --shine: 0.35;
+}
+/* dark glass: the display, the position */
+@utility glass-dark {
+  background-color: var(--color-ink);
+  box-shadow:
+    inset 0 2px 4px rgb(0 0 0 / 0.6),
+    0 1px 0 rgb(255 255 255 / 0.9);
 }
 
 /* the album's tones, for components that take one: bg-(--tone) */

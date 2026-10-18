@@ -6,7 +6,6 @@ import { useState } from "preact/hooks";
 import { html } from "/js/ui/html.js";
 import { Icon } from "/js/ui/icon.js";
 import { SyncLight } from "/js/ui/sync-light.js";
-import { Stripes } from "/js/ui/stripes.js";
 import { Day } from "/js/ui/day.js";
 import { Amount } from "/js/ui/amount.js";
 import { Mark } from "/js/ui/mark.js";
@@ -16,12 +15,12 @@ import { Position } from "/js/ui/position.js";
 import { Block } from "/js/ui/block.js";
 import { Deck } from "/js/ui/deck.js";
 import { Row } from "/js/ui/row.js";
-import { IconButton } from "/js/ui/icon-button.js";
+import { Key } from "/js/ui/key.js";
+import { Latch } from "/js/ui/latch.js";
 import { IngredientRow } from "/js/ui/ingredient-row.js";
 import { SubHeader } from "/js/ui/sub-header.js";
 import { AddRow } from "/js/ui/add-row.js";
 import { TabBar } from "/js/ui/tab-bar.js";
-import { TabRail } from "/js/ui/tab-rail.js";
 import { Toast } from "/js/ui/toast.js";
 import { Field } from "/js/ui/field.js";
 import { Ticks } from "/js/ui/ticks.js";
@@ -57,7 +56,7 @@ function Page() {
     <h1 class="type-display">poki — components</h1>
 
     <${Section} title="Icons">
-      ${icons.map((n) => html`<span class=${n === "reel" ? "rounded-full bg-dusk p-1" : ""}><${Icon} name=${n} /></span>`)}
+      ${icons.map((n) => html`<span class=${n === "reel" ? "rounded-full bg-ink p-1" : ""}><${Icon} name=${n} /></span>`)}
       <${Ticks} />
     </${Section}>
 
@@ -65,13 +64,16 @@ function Page() {
       ${["synced", "waiting", "off"].map((s) => html`<${SyncLight} status=${s} />`)}
     </${Section}>
 
-    <${Section} title="Stripes"><${Stripes} class="w-[240px]" /></${Section}>
-
     <${Section} title="Day">
       ${["default", "today", "picked"].map((s) => html`<${Day} letter="S" number="17" state=${s} />`)}
     </${Section}>
 
     <${Section} title="Amount">${tones.map((t) => html`<${Amount} value="325 g" tone=${t} />`)}</${Section}>
+
+    <${Section} title="Key · Latch">
+      <${Key} icon="move" label="Move" /><${Key} icon="chevron" label="Open" />
+      ${["gold", "orchid", "sky"].map((t) => html`<${Latch} tone=${t} icon="plus" label="Off" onClick=${() => {}} /><${Latch} tone=${t} on icon="check" label="On" onClick=${() => {}} />`)}
+    </${Section}>
 
     <${Section} title="Mark · Tick">
       ${["none", "buy", "check"].map((v) => html`<${Mark} value=${v} />`)}
@@ -79,8 +81,8 @@ function Page() {
     </${Section}>
 
     <${Section} title="Tab">
-      <div class="flex rounded-full bg-dusk p-2"><${Tab} label="Plan" /></div>
-      <div class="flex rounded-full bg-dusk p-2"><${Tab} label="Plan" on /></div>
+      <div class="flex w-[120px] rounded-[22px] bg-dusk p-2"><${Tab} label="Plan" /></div>
+      <div class="flex w-[120px] rounded-[22px] bg-dusk p-2"><${Tab} label="Plan" on /></div>
     </${Section}>
 
     <${Section} title="Position · Block">
@@ -97,7 +99,7 @@ function Page() {
 
     <${Section} title="Deck">
       <div class="w-[366px]"><${Deck} kind="List" title="List" /></div>
-      <div class="w-[366px]"><${Deck} kind="Plan" title="Today" subtitle="SAT 17 OCT" days=${week} sync=${{ status: "waiting", syncing: true }} /></div>
+      <div class="w-[366px]"><${Deck} kind="Plan" title="Today" days=${week} sync=${{ status: "waiting", syncing: true }} /></div>
       <div class="w-[366px]"><${Deck} kind="Meals" title="Meals" sync=${{ status: "off" }} /></div>
     </${Section}>
 
@@ -109,12 +111,6 @@ function Page() {
         <${Row} name="Toilet paper" tick=${false} />
         <${Row} name="Bread" amount="2" tone="pink" tick=${true} />
       </${Col}>
-    </${Section}>
-
-    <${Section} title="Icon button">
-      <${IconButton} icon="back" label="Back" />
-      <${IconButton} icon="move" label="Move" />
-      <${IconButton} icon="edit" label="Edit" />
     </${Section}>
 
     <${Section} title="Ingredient row">
@@ -131,10 +127,6 @@ function Page() {
 
     <${Section} title="Tab bar">
       <div class="flex w-[358px] flex-col gap-4">${tabs.map((t) => html`<${TabBar} tabs=${tabs} active=${t} onPick=${() => {}} />`)}</div>
-    </${Section}>
-
-    <${Section} title="Tab rail">
-      ${tabs.map((t) => html`<div class="w-[240px]"><${TabRail} tabs=${tabs} active=${t} onPick=${() => {}} /></div>`)}
     </${Section}>
 
     <${Section} title="Toast">

@@ -3,8 +3,8 @@ import { ToastHost } from "./toasts.js";
 
 // Layout places a tab's parts (figma.md → rules). phone: head (the deck, or a
 // page's sub header) and body scroll together above the floating tab bar.
-// desktop: a sidebar (the deck, the rail, then side, the open page, in a
-// card) and a main area.
+// desktop: a sidebar (the deck, the tab bar, then side, the open page, on
+// the ground) and a main area.
 export function Layout({ desktop, nav, head, body, deck, side, main }) {
   if (!desktop) {
     return html`
@@ -23,9 +23,7 @@ export function Layout({ desktop, nav, head, body, deck, side, main }) {
       <aside class="flex w-[390px] shrink-0 flex-col gap-4 px-4 py-6">
         ${deck} ${nav}
         ${side &&
-        html`<section class="flex min-h-0 flex-1 flex-col overflow-hidden rounded-lg border-2 border-ink bg-paper shadow-soft">
-          <div class="scroll min-h-0 flex-1 pb-4">${side}</div>
-        </section>`}
+        html`<section class="scroll min-h-0 flex-1 pb-4">${side}</section>`}
       </aside>
       <main class="scroll min-w-0 flex-1 px-4 py-6">${main}</main>
       <div class="fixed right-6 bottom-6 w-[366px]"><${ToastHost} /></div>

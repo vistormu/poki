@@ -45,7 +45,7 @@ export function ItemPicker({ data, initial = "", onPick, after }) {
     <${Field} icon="search" value=${text} onInput=${setText} autofocus enterkeyhint="done" />
     <div class="pt-2">
       ${rows.map(
-        (r, i) => html`<${Row} key=${r.key} name=${r.name} amount=${r.amount} tone=${r.tone} trailing=${r.trailing} divider=${i < rows.length - 1} onClick=${r.pick} />`,
+        (r) => html`<${Row} key=${r.key} name=${r.name} amount=${r.amount} tone=${r.tone} trailing=${r.trailing} onClick=${r.pick} />`,
       )}
     </div>
     ${after && html`<div class="pt-6">${after}</div>`}

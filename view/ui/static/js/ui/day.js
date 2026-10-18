@@ -1,12 +1,13 @@
 import { html } from "./html.js";
 
-// Day is a date of the monday-to-sunday reference: picked is the shown day
-// (gold), today an outline when another day is shown.
+// Day is a date of the monday-to-sunday reference, a glass well: picked is the
+// shown day (lit gold from behind), today a full ink rim when another day is
+// shown.
 export function Day({ letter, number, state = "default", onClick }) {
-  const box = state === "picked" ? "border-ink bg-gold" : state === "today" ? "border-ink" : "border-transparent";
+  const look = state === "picked" ? "glass-lit" : state === "today" ? "[--glass-rim:var(--color-ink)] [--glass-w:1.5px]" : "";
   return html`<button
     type="button"
-    class="flex w-[42px] flex-col items-center gap-1 rounded-sm border-2 py-2 ${box}"
+    class="glass flex w-[42px] flex-col items-center gap-1 rounded-sm py-2 ${look}"
     aria-current=${state === "picked" ? "date" : null}
     onClick=${onClick}
   >
