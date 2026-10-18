@@ -27,6 +27,7 @@ through `POST /api/sync` (`/healthz` says the server and its db are up).
 | `just css-watch` | recompile the css on change              |
 | `just css-check` | fail if the committed `site.css` is stale |
 | `just fonts` | copy the self-hosted fonts out of `@fontsource` |
+| `just release vX.Y.Z` | tag main and push the tag: github tests it and publishes `ghcr.io/vistormu/poki:vX.Y.Z` (and `:latest`); with no version, says the last one |
 
 the css is tailwind v4 with figma's tokens (`view/ui/static/css/input.css`). the compiled `site.css` is
 committed and embedded, so `go build` and `just test` work without node; only the
@@ -44,6 +45,8 @@ worker): open a fresh window to see a change.
 | `poki run [--dev]` | start the web server (migrates the db on boot); `--dev` serves no offline shell and drops a browser's old one |
 | `poki migrate` | apply pending migrations, print the version |
 | `poki health` | ask the server on `POKI_ADDR` whether it is up and its db answers (`/healthz`); exit 1 if not |
+| `poki backup <file>` | a consistent copy of `POKI_DB` to a new file, while the server runs (restore: stop, put it in place, drop `-wal`/`-shm`, start) |
+| `poki --version` | the version the image was built as (`dev` otherwise) |
 | `poki op group add <name>` | add a group, last on the path |
 | `poki op group list` | the groups in path order: position, id, name |
 | `poki op group rename <group> <name>` | rename a group; its items stay |
@@ -84,3 +87,4 @@ dates are `YYYY-MM-DD`.
 | ----------- | ------- | ----------------- |
 | `POKI_ADDR` | `:8091` | listen address    |
 | `POKI_DB`   | `poki.db` | the sqlite file, created and migrated on boot |
+| `TZ`        | the system's | the terminal's today (`op plan show`); the image has the tz database built in |

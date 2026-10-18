@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"io/fs"
 	"net/url"
+	"os"
 	"sync/atomic"
 
 	"github.com/jmoiron/sqlx"
@@ -206,3 +207,14 @@ func (t *tx) del(ctx context.Context, table, id string) error {
 
 // DB is the connection, for tests that look under the services.
 func (s *Store) DB() *sqlx.DB { return s.db }
+
+// Backup writes a consistent copy of db to path, which must not exist (sqlite's
+// VACUUM INTO): safe while the server writes, unlike copying the file and its
+// wal.
+func Backup(ctx context.Context, db *sqlx.DB, path string) error {
+	if _, err := os.Stat(path); err == nil {
+		return fmt.Errorf("backup: %s exists", path)
+	}
+	_, err := db.ExecContext(ctx, `VACUUM INTO ?`, path)
+	return err
+}

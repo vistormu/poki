@@ -11,15 +11,19 @@ import (
 	"poki/adapter/store"
 )
 
+// version is set by the image build (-ldflags "-X poki/cmd.version=v0.1.0").
+var version = "dev"
+
 func Execute() {
 	root := &cobra.Command{
-		Use:   "poki",
-		Short: "the basket — meals, a plan and the grocery list for two",
+		Use:     "poki",
+		Short:   "the basket — meals, a plan and the grocery list for two",
+		Version: version,
 		// errors are printed once, below, without the usage dump
 		SilenceUsage:  true,
 		SilenceErrors: true,
 	}
-	root.AddCommand(runCmd(), migrateCmd(), healthCmd(), opCmd())
+	root.AddCommand(runCmd(), migrateCmd(), healthCmd(), backupCmd(), opCmd())
 
 	if err := root.Execute(); err != nil {
 		fmt.Fprintln(os.Stderr, err)
