@@ -80,6 +80,21 @@ test("add: an item by hand, a new one into Other, the amount in its unit", async
   assert.deepEqual(shelves(s), ["Fruit & veg: Tomatoes 6", "Dairy: Greek yogurt 750", "Other: Dish soap, Toilet paper"]);
 });
 
+test("add under a group: the item takes it, new or not; Other is no group", async () => {
+  const d = await kitchen();
+  await l.add(d, { name: "carrots", unit: "count", amount: 3 }, "veg");
+  await l.add(d, { item: d.get("items", "soap"), amount: null }, "dairy");
+  await l.add(d, { item: d.get("items", "yog"), amount: 100 }, null);
+  assert.deepEqual(shelves(l.sheet(d)), ["Fruit & veg: Carrots 3, Tomatoes 6", "Dairy: Dish soap", "Other: Greek yogurt 600"]);
+});
+
+test("sheet while editing: every group, Other too, even empty", async () => {
+  const d = await kitchen();
+  await l.clear(d);
+  assert.deepEqual(l.sheet(d).groups, []);
+  assert.deepEqual(l.sheet(d, true).groups.map((g) => (g.group ? g.group.name : "Other")), ["Fruit & veg", "Dairy", "Other"]);
+});
+
 test("clear: everything goes, unused ungrouped items too; undo puts it all back", async () => {
   const d = await kitchen();
   await l.add(d, { name: "toilet paper", unit: "none", amount: null });

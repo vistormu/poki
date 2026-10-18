@@ -125,3 +125,25 @@ test("marks: bought counts as buy, and buy leaves it bought", async () => {
   await p.mark(d, id, p.planned(d, id)[0], "buy");
   assert.equal(d.get("list_entries", entry.id).state, "bought");
 });
+
+test("remove: its undo puts the entry back, unless its slot can't take it", async () => {
+  const d = await kitchen();
+  const las = await p.place(d, day, "lunch", "las");
+  await p.place(d, day, "lunch", "sal");
+  let undo = await p.remove(d, las);
+  assert.equal(names(d, day, "lunch"), "Green salad");
+  assert.equal(await undo(), true);
+  assert.equal(names(d, day, "lunch"), "Lasagna, Green salad"); // where it was
+
+  const none = await p.place(d, day, "dinner", NO_MEAL);
+  undo = await p.remove(d, none);
+  await p.place(d, day, "dinner", "bur");
+  assert.equal(await undo(), false); // no meal goes only in an empty slot
+  assert.equal(names(d, day, "dinner"), "Burgers");
+
+  const bur = p.entries(d, day, "dinner")[0].id;
+  undo = await p.remove(d, bur);
+  await p.place(d, day, "dinner", NO_MEAL);
+  assert.equal(await undo(), false); // its slot is marked no meal now
+  assert.equal(await p.remove(d, "gone"), null);
+});

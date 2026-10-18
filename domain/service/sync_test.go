@@ -280,6 +280,33 @@ func TestPutBringsADeletedRowBack(t *testing.T) {
 	}
 }
 
+// a planned meal taken off the plan leaves its list entries (spec → plan):
+// they still tick, untick and resolve, and come back with an undo of clear.
+func TestAnEntryOutlivesItsPlannedMeal(t *testing.T) {
+	s, _, _ := newSync(t)
+	syncOK(t, s, 0,
+		"put meals m name=pasta",
+		"put items i name=carrot unit=count",
+		"put items o name=onion unit=count",
+		"put plan_entries p date=2026-10-17 slot=dinner meal_id=m position=#1",
+		"put list_entries l item_id=i amount=#2 plan_entry_id=p state=buy",
+		"put list_entries c item_id=o plan_entry_id=p state=check",
+	)
+	syncOK(t, s, 0, "del plan_entries p")
+	syncOK(t, s, 0, "put list_entries l state=bought", "put list_entries c state=buy")
+	syncOK(t, s, 0, "put list_entries l state=buy")
+	syncOK(t, s, 0, "del list_entries l")
+	// clear's undo: the item it swept, then the entry
+	syncOK(t, s, 0, "put items i name=carrot unit=count", "put list_entries l item_id=i amount=#2 plan_entry_id=p state=buy")
+	if got := liveRows(t, s, "list_entries"); got != "c amount=<nil> item_id=o plan_entry_id=p state=buy / l amount=2 item_id=i plan_entry_id=p state=buy" {
+		t.Errorf("list %q", got)
+	}
+	// a new mark still needs its planned meal on the plan
+	if got := rejected(t, s, "put list_entries n item_id=o plan_entry_id=p state=buy"); !strings.Contains(got, "not found") {
+		t.Errorf("a new mark on a removed planned meal: %q", got)
+	}
+}
+
 func TestRepickingLetsTheStrayGo(t *testing.T) {
 	s, _, _ := newSync(t)
 	syncOK(t, s, 0, "put meals m name=lasagna", "put items typo name=mozarella unit=g",

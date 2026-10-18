@@ -3,16 +3,14 @@ import { useState, useEffect } from "preact/hooks";
 import { html } from "./html.js";
 import { Icon } from "./icon.js";
 import { Key } from "./key.js";
+import { Latch } from "./latch.js";
 import { SyncLight } from "./sync-light.js";
 import { Day } from "./day.js";
 
 // the keys each kind of deck has: the tab's global actions (decisions: no
 // floating button)
 const keys = {
-  List: [
-    ["plus", "Add", "onAdd"],
-    ["eject", "Clear the list", "onClear"],
-  ],
+  List: [["eject", "Clear the list", "onClear"]],
   Plan: [
     ["rewind", "Seven days back", "onBack"],
     ["forward", "Seven days forward", "onForward"],
@@ -24,8 +22,10 @@ const keys = {
 // above: a cream body on its side; the window (the title, the cassette in its
 // bay); the sync lamps, the stripes lit in a dark display, the tab's keys; on
 // the plan the dates, as glass. sync is the syncer's state; the reels turn
-// while changes wait (REC) or the server can't be reached (OFF).
-export function Deck({ kind, title, sync = { status: "synced" }, days, ...on }) {
+// while changes wait (REC) or the server can't be reached (OFF). the list's
+// ✎ is a latch (editing is a state): latched, the tubes chase and ⏏ gives way
+// to the Path latch (editing, path: on; onEdit, onPath).
+export function Deck({ kind, title, sync = { status: "synced" }, days, editing = false, path = false, ...on }) {
   const [spin, stop] = useSpin(sync.status !== "synced");
   return html`<header class="relative rounded-lg [--side:4px]">
     <span class="side"></span>
@@ -37,8 +37,11 @@ export function Deck({ kind, title, sync = { status: "synced" }, days, ...on }) 
       </div>
       <div class="flex items-center gap-2 pr-2 pl-4">
         <${SyncLight} status=${sync.status} />
-        <${Display} />
-        ${keys[kind].map(([icon, label, handler]) => html`<${Key} icon=${icon} label=${label} onClick=${on[handler]} />`)}
+        <${Display} chase=${editing} />
+        ${kind === "List" && html`<${Latch} tone="gold" on=${editing} icon="edit" label="Edit the list" onClick=${on.onEdit} />`}
+        ${kind === "List" && editing
+          ? html`<${Latch} tone="gold" on=${path} icon="path" label="The path" onClick=${on.onPath} />`
+          : keys[kind].map(([icon, label, handler]) => html`<${Key} icon=${icon} label=${label} onClick=${on[handler]} />`)}
       </div>
       ${kind === "Plan" &&
       days &&
@@ -64,13 +67,13 @@ function Bay({ spin, onTurn }) {
 }
 
 // Display is the stripes as five lit tubes in a dark window, 10 in from
-// each end.
+// each end. chasing (editing), 1·3·5 and 2·4 take turns.
 const tubes = ["sky", "periwinkle", "orchid", "pink", "gold"];
-function Display() {
+function Display({ chase = false }) {
   return html`<div class="glass-dark flex h-9 min-w-0 flex-1 flex-col justify-center gap-[2px] rounded-sm px-[10px]" aria-hidden="true">
     ${tubes.map(
-      (t) => html`<span
-        class="h-[3px] w-full rounded-[2px]"
+      (t, i) => html`<span
+        class="h-[3px] w-full rounded-[2px] ${chase ? (i % 2 ? "chase-b" : "chase-a") : ""}"
         style=${`background-image: linear-gradient(to bottom, var(--color-${t}), color-mix(in srgb, var(--color-${t}), white 75%), var(--color-${t})); box-shadow: 0 0 6px color-mix(in srgb, var(--color-${t}) 90%, transparent);`}
       ></span>`,
     )}

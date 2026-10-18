@@ -1,8 +1,8 @@
 // the item picker (spec → the item picker, decisions/0006, 0012): name and
 // amount typed together; the closest items first; last, the typed name as a
 // new item, unless an item has that name. a meal's ingredients use it, and
-// the list's adding by hand will.
-import { useState } from "preact/hooks";
+// the list's adding under a group, in place.
+import { useRef, useState } from "preact/hooks";
 
 import { html } from "../ui/html.js";
 import { Field } from "../ui/field.js";
@@ -10,13 +10,17 @@ import { Row } from "../ui/row.js";
 import { parse, format } from "../data/amount.js";
 import { rank, same, capital } from "../data/match.js";
 import { toneOf } from "../data/meals.js";
+import { useAway } from "./hooks.js";
 
 const SHOW = 12;
 
 // ItemPicker calls onPick with {item, amount} or a new {name, unit, amount}.
 // initial fills the field (changing an ingredient); after goes below the rows.
-export function ItemPicker({ data, initial = "", onPick, after }) {
+// in place, the + widens into the field, and a tap outside calls onAway.
+export function ItemPicker({ data, initial = "", onPick, after, inPlace = false, onAway }) {
   const [text, setText] = useState(initial);
+  const ref = useRef(null);
+  useAway(ref, inPlace && onAway);
   const typed = parse(text);
   const found = rank(typed.name, data.all("items")).slice(0, SHOW);
   const fresh = typed.name && !found.some((it) => same(it.name, typed.name));
@@ -41,13 +45,13 @@ export function ItemPicker({ data, initial = "", onPick, after }) {
         ]
       : []),
   ];
-  return html`
-    <${Field} icon="search" value=${text} onInput=${setText} autofocus enterkeyhint="done" />
+  return html`<div ref=${ref}>
+    <div class=${inPlace ? "widen" : ""}><${Field} icon="search" value=${text} onInput=${setText} autofocus enterkeyhint="done" /></div>
     <div class="pt-2">
       ${rows.map(
         (r) => html`<${Row} key=${r.key} name=${r.name} amount=${r.amount} tone=${r.tone} trailing=${r.trailing} onClick=${r.pick} />`,
       )}
     </div>
-    ${after && html`<div class="pt-6">${after}</div>`}
-  `;
+    ${after && html`<div class="pt-2">${after}</div>`}
+  </div>`;
 }

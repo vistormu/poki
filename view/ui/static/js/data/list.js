@@ -35,7 +35,9 @@ export function total(entries) {
 // buy with its total, then Other when it holds something; the bought ones
 // apart, in path order. an empty list has no groups either (the cleared
 // list's one muted line).
-export function sheet(data) {
+// editing (figma: List — editing), every group shows, Other too, so each has
+// its + even with nothing in it.
+export function sheet(data, editing = false) {
   const groups = path(data);
   const items = new Map(data.all("items").map((it) => [it.id, it]));
   const check = [];
@@ -62,13 +64,22 @@ export function sheet(data) {
   const order = (r) => shelves.indexOf(shelfOf(r.item));
   const bought = [...rows.bought.values()].map(done).sort((a, b) => order(a) - order(b) || byName(a.item, b.item));
   const empty = !check.length && !bought.length && shelves.every((s) => !s.rows.length);
+  if (editing) return { check, groups: shelves, bought };
   return { check, groups: empty ? [] : shelves.filter((s) => s.group || s.rows.length), bought };
 }
 
 // add puts a picked item on the list by hand, to buy, with its amount.
-export async function add(data, pick) {
+// add puts a picked item on the list, to buy. picked under a group (groupID:
+// a group's id, or null for Other), the item takes that group, new or not
+// (the owner, d2).
+export async function add(data, pick, groupID) {
   const [itemID, ops] = pickOps(data, pick);
   const unit = pick.item ? pick.item.unit : pick.unit;
+  if (groupID !== undefined && (!pick.item || (pick.item.group_id || null) !== groupID)) {
+    const made = ops.find((o) => o.table === "items" && o.id === itemID);
+    if (made) made.fields.group_id = groupID;
+    else ops.push(put("items", itemID, { group_id: groupID }));
+  }
   ops.push(put("list_entries", newID(), { item_id: itemID, amount: amountFor(unit, pick.amount), plan_entry_id: null, state: "buy" }));
   await data.change(ops);
 }

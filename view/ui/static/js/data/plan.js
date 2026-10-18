@@ -99,9 +99,21 @@ export async function swap(data, a, b) {
 }
 
 // remove takes an entry off the plan, no meal too; what its marks put on the
-// list stays (spec → plan).
-export function remove(data, id) {
-  return data.del("plan_entries", id);
+// list stays (spec → plan). it returns its undo: the entry back where it was,
+// unless its slot can't take it any more (a no meal into a slot that holds
+// something, a meal into one marked no meal): then the undo does nothing.
+export async function remove(data, id) {
+  const e = data.get("plan_entries", id);
+  if (!e) return null;
+  await data.del("plan_entries", id);
+  const { id: _, ...fields } = e;
+  return async () => {
+    const inSlot = entries(data, e.date, e.slot);
+    if (e.meal_id === NO_MEAL ? inSlot.length : isNoMeal(inSlot)) return false;
+    if (!data.get("meals", e.meal_id)) return false;
+    await data.put("plan_entries", id, fields);
+    return true;
+  };
 }
 
 // planned is a planned meal's ingredients, each with its mark: "buy" (bought

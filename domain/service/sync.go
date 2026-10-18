@@ -299,12 +299,27 @@ func checkListEntry(t model.SyncTx, id string, row, old model.Row) error {
 	if err := checkUse(t, row, old); err != nil {
 		return err
 	}
+	// a planned meal taken off the plan leaves its entries (spec → plan): one
+	// already tied to it keeps ticking, and one coming back (an undo) comes
+	// back to it. only a new mark needs it on the plan.
 	p := row["plan_entry_id"]
-	if p == nil {
+	if p == nil || (old != nil && old["plan_entry_id"] == p) {
 		return nil
 	}
-	if _, err := live(t, "plan_entries", p.(string)); err != nil {
+	_, entryDeleted, entryExisted, err := t.Get("list_entries", id)
+	if err != nil {
 		return err
+	}
+	_, planDeleted, planExists, err := t.Get("plan_entries", p.(string))
+	if err != nil {
+		return err
+	}
+	comesBack := entryExisted && entryDeleted
+	if !planExists || (planDeleted && !comesBack) {
+		return fmt.Errorf("plan_entries %s: %w", p, model.ErrNotFound)
+	}
+	if planDeleted {
+		return nil // back to a meal off the plan: it has no marks to clash with
 	}
 	same, err := others(t, "list_entries", id, model.Row{"plan_entry_id": p, "item_id": row["item_id"]})
 	if err != nil {

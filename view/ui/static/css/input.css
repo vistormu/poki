@@ -321,3 +321,59 @@
 @utility spin-reel {
   animation: reel 2.4s linear infinite;
 }
+
+/* in place (m16): what opens unfolds where it is, pushing what is below
+   down; the + widens into its field. folding is at once. */
+@keyframes unfold {
+  from {
+    grid-template-rows: 0fr;
+    opacity: 0;
+  }
+  to {
+    grid-template-rows: 1fr;
+    opacity: 1;
+  }
+}
+@utility unfold {
+  display: grid;
+  animation: unfold 250ms ease-out;
+  & > * {
+    min-height: 0;
+    overflow: hidden;
+  }
+}
+@keyframes widen {
+  from {
+    max-width: 36px;
+  }
+  to {
+    max-width: 100%;
+  }
+}
+@utility widen {
+  margin-inline: auto;
+  animation: widen 250ms ease-out;
+}
+/* editing the list: the tubes chase, 1·3·5 and 2·4 taking turns */
+@keyframes chase {
+  0%,
+  49% {
+    opacity: 1;
+  }
+  50%,
+  100% {
+    opacity: 0.2;
+  }
+}
+@utility chase-a {
+  animation: chase 1.2s infinite;
+}
+@utility chase-b {
+  animation: chase 1.2s -0.6s infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  .unfold,
+  .widen {
+    animation: none;
+  }
+}

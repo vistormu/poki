@@ -1,3 +1,5 @@
+import { useState } from "preact/hooks";
+
 import { html } from "../ui/html.js";
 import { ToastHost } from "./toasts.js";
 
@@ -36,3 +38,10 @@ export const DeckHead = ({ children }) => html`<div class="px-3 pt-2">${children
 
 // Empty is a muted line (spec → empty states).
 export const Empty = ({ text }) => html`<p class="py-6 text-center type-body opacity-60">${text}</p>`;
+
+// Unfold shows what opened in place growing from nothing, pushing what is
+// below down; it clips only while it grows, so shadows show after.
+export function Unfold({ children }) {
+  const [growing, setGrowing] = useState(true);
+  return html`<div class=${growing ? "unfold" : ""} onAnimationEnd=${(e) => e.target === e.currentTarget && setGrowing(false)}><div>${children}</div></div>`;
+}

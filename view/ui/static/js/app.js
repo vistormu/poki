@@ -42,7 +42,7 @@ function App({ data, syncer }) {
   // app is what one tab opens in another: a meal to edit, a meal to place
   const app = {
     toMeal: (id) => {
-      setPage("Meals", { name: "meal", id });
+      setPage("Meals", { id });
       setTab("Meals");
     },
     place: (id) => {
