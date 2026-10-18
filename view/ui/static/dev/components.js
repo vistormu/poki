@@ -24,6 +24,7 @@ import { TabBar } from "/js/ui/tab-bar.js";
 import { TabRail } from "/js/ui/tab-rail.js";
 import { Toast } from "/js/ui/toast.js";
 import { Field } from "/js/ui/field.js";
+import { Ticks } from "/js/ui/ticks.js";
 
 const icons = ["plus", "chevron", "no-meal", "search", "reel", "check", "move", "swap", "edit", "back", "close", "rewind", "forward", "eject"];
 const tones = ["sky", "pink", "gold", "periwinkle", "orchid"];
@@ -57,6 +58,7 @@ function Page() {
 
     <${Section} title="Icons">
       ${icons.map((n) => html`<span class=${n === "reel" ? "rounded-full bg-dusk p-1" : ""}><${Icon} name=${n} /></span>`)}
+      <${Ticks} />
     </${Section}>
 
     <${Section} title="Sync light">
