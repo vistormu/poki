@@ -21,6 +21,7 @@ through `POST /api/sync` (`/healthz` says the server and its db are up).
 | `just test-js` | `node --test` the client's pure modules (`view/ui/test/`) |
 | `just lint`  | `gofmt` + `go vet`                        |
 | `just check` | `lint` + `css-check` + `test`, the gate before a commit |
+| `just e2e`   | the real app in chromium and firefox (`view/ui/e2e/`), each test on a fresh seeded server, checked through `poki op`; needs playwright's browsers in `~/.cache/ms-playwright` (or `POKI_CHROMIUM`, `POKI_FIREFOX`) |
 | `just vendor` | re-download pinned preact, hooks and htm, checked against a second cdn |
 | `just css`   | compile tailwind: `input.css` → `site.css`  |
 | `just css-watch` | recompile the css on change              |

@@ -13,6 +13,17 @@ test: test-js
 test-js:
     node --test 'view/ui/test/*.test.js'
 
+# the end-to-end tests (t1): the real app in chromium and firefox, each test
+# on a fresh kitchen and server, checked through `poki op`. not in check: it
+# needs the browsers (~/.cache/ms-playwright; POKI_CHROMIUM, POKI_FIREFOX).
+e2e: _node css
+    #!/usr/bin/env bash
+    set -euo pipefail
+    bin=$(mktemp -d "${TMPDIR:-/tmp}/poki-e2e-bin.XXXXXX")
+    trap 'rm -rf "$bin"' EXIT
+    go build -o "$bin/poki" .
+    POKI_BIN="$bin/poki" node --test --test-concurrency=1 'view/ui/e2e/*.e2e.js'
+
 # the milestone gate
 check: lint css-check test
 
