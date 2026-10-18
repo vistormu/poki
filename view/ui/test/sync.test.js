@@ -95,6 +95,8 @@ test("a rejected op brings a full sync after", async () => {
       : { rev: 4, rejected: body.ops.map((o) => o.op), changes: [] },
   );
   const sy = new Syncer(d, s.post);
+  const refused = [];
+  sy.onRejected = (ops) => refused.push(...ops.map((op) => [op.table, op.id, !!d.get(op.table, op.id)]));
   sy.full = false; // as after a first sync
   d.rev = 3;
   await sy.sync();
@@ -107,6 +109,7 @@ test("a rejected op brings a full sync after", async () => {
     ],
   );
   assert.equal(d.get("ingredients", "n"), undefined); // the server never had it
+  assert.deepEqual(refused, [["ingredients", "n", true]]); // told while the row is still here, to name it
   assert.equal(d.get("meals", "m").name, "soup");
 });
 

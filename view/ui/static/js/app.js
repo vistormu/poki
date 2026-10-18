@@ -5,13 +5,12 @@ import { Data } from "./data/data.js";
 import { idb } from "./data/idb.js";
 import { post, Syncer } from "./data/sync.js";
 import { html } from "./ui/html.js";
-import { Deck } from "./ui/deck.js";
 import { TabBar } from "./ui/tab-bar.js";
 import { TabRail } from "./ui/tab-rail.js";
 import { useData, useDesktop } from "./screens/hooks.js";
-import { Layout, DeckHead } from "./screens/layout.js";
 import { MealsTab } from "./screens/meals.js";
 import { PlanTab } from "./screens/plan.js";
+import { ListTab } from "./screens/list.js";
 import { toast, dismiss } from "./screens/toasts.js";
 
 // the three tabs (spec → screens)
@@ -22,12 +21,6 @@ function useSync(syncer) {
   const [s, setS] = useState(syncer.state);
   useEffect(() => syncer.subscribe(setS), [syncer]);
   return s;
-}
-
-// Bare is a tab whose screen is still to come: its deck only.
-function Bare({ tab, desktop, nav, sync }) {
-  const deck = html`<${Deck} kind=${tab} title=${tab} sync=${sync} />`;
-  return html`<${Layout} desktop=${desktop} nav=${nav} deck=${deck} head=${html`<${DeckHead}>${deck}</${DeckHead}>`} />`;
 }
 
 function App({ data, syncer }) {
@@ -62,8 +55,17 @@ function App({ data, syncer }) {
   const nav = desktop ? html`<${TabRail} tabs=${tabs} active=${tab} onPick=${pick} />` : html`<${TabBar} tabs=${tabs} active=${tab} onPick=${pick} />`;
   const props = { data, desktop, nav, sync, app, page: pages[tab] || null, setPage: (p) => setPage(tab, p) };
   if (tab === "Plan") return html`<${PlanTab} ...${props} />`;
-  if (tab === "Meals") return html`<${MealsTab} ...${props} />`;
-  return html`<${Bare} tab=${tab} ...${props} />`;
+  if (tab === "List") return html`<${ListTab} ...${props} />`;
+  return html`<${MealsTab} ...${props} />`;
+}
+
+// refused names what a refused op was about, from the row while it's here.
+function refused(data, op) {
+  const row = { ...data.get(op.table, op.id), ...op.fields };
+  const name = (table, id) => data.get(table, id)?.name;
+  if (op.table === "ingredients" || op.table === "list_entries") return name("items", row.item_id) || "An item";
+  if (op.table === "plan_entries") return name("meals", row.meal_id) || "A meal";
+  return row.name || "A change";
 }
 
 // ios pinches past the viewport's maximum-scale; this is what stops it
@@ -79,6 +81,8 @@ navigator.storage?.persist?.();
 
 const data = await Data.open(await idb());
 const syncer = new Syncer(data, post);
+// a change the server refused (spec → messages): the error stays until tapped
+syncer.onRejected = (ops) => toast({ kind: "error", text: `${refused(data, ops[0])} couldn’t be saved` });
 render(html`<${App} data=${data} syncer=${syncer} />`, document.getElementById("app"));
 syncer.start(window, document);
 

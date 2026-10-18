@@ -30,7 +30,7 @@ export function ingredients(data, mealID) {
 
 // the album's tones as groups take them along the path; Other, last, takes
 // the next (figma.md → the list)
-const tones = ["sky", "pink", "gold", "periwinkle"];
+export const tones = ["sky", "pink", "gold", "periwinkle"];
 
 // toneOf is an item's tone: its group's place on the path.
 export function toneOf(data, item) {
@@ -84,15 +84,16 @@ export async function deleteMeal(data, id) {
 }
 
 // a pick is what the item picker hands back: an existing item ({item}) or a
-// new one ({name, unit}), and the amount typed.
-function pickOps(data, pick) {
+// new one ({name, unit}), and the amount typed. pickOps is its item's id and
+// the ops that make a new one.
+export function pickOps(data, pick) {
   if (pick.item) return [pick.item.id, []];
   const id = newID();
   return [id, [put("items", id, { name: capital(pick.name), unit: pick.unit, group_id: null })]];
 }
 
 // amountFor is a typed amount in the item's unit: none for `none` items.
-function amountFor(unit, amount) {
+export function amountFor(unit, amount) {
   return unit === "none" || !(amount > 0) ? null : amount;
 }
 

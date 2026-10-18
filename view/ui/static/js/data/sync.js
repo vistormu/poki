@@ -23,6 +23,7 @@ export class Syncer {
     this.failed = false;
     this.listeners = new Set();
     this.soonTimer = null;
+    this.onRejected = null; // called with the ops the server refused, before the truth is put back
   }
 
   // state is what the light shows: its status, whether a sync is in flight
@@ -73,6 +74,7 @@ export class Syncer {
       return;
     }
     this.failed = false;
+    if (res.rejected.length) this.onRejected?.(sent.filter((op) => res.rejected.includes(op.op)));
     await this.data.took(sent, res, full);
     // a rejected op may have left a row the server never took: take all of
     // them once, so the phone holds the truth
